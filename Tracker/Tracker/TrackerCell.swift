@@ -109,6 +109,10 @@ final class TrackerCell: UICollectionViewCell {
         managementView.addSubview(counterLabel)
         managementView.addSubview(doneButton)
         
+        setupConstraints()
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
             trackerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             trackerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
