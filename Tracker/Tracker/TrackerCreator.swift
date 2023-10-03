@@ -118,8 +118,7 @@ final class TrackerCreatorViewController: UIViewController {
     }
 }
 
-// MARK: - Extension
-
+    // MARK: - Extension
 extension TrackerCreatorViewController: NewHabitViewControllerDelegate {
     func newTrackerCreated(_ tracker: Tracker) {
         delegate?.newTrackerCreated(tracker)

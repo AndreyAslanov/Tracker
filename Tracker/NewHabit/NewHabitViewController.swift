@@ -20,9 +20,30 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
     weak var delegate: NewHabitViewControllerDelegate?
     var categories: [TrackerCategory] = []
     
-    private let emoji = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇" , "🎸", "🏝", "😪"]
-    private let colors = ["1", "2", "3", "4", "5", "6","7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"]
+    private var selectedEmoji: Int?
+    private var selectedColor: Int?
     
+    private let emoji = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇" , "🎸", "🏝", "😪"]
+    private let colors: [UIColor] = [
+        UIColor(named: "1") ?? #colorLiteral(red: 1, green: 0.3956416845, blue: 0.3553284407, alpha: 1),
+        UIColor(named: "2") ?? #colorLiteral(red: 1, green: 0.606235683, blue: 0.1476774216, alpha: 1),
+        UIColor(named: "3") ?? #colorLiteral(red: 0, green: 0.5718221664, blue: 0.9856571555, alpha: 1),
+        UIColor(named: "4") ?? #colorLiteral(red: 0.5111960173, green: 0.3877502382, blue: 0.9980657697, alpha: 1),
+        UIColor(named: "5") ?? #colorLiteral(red: 0.216876775, green: 0.8317107558, blue: 0.4868133068, alpha: 1),
+        UIColor(named: "6") ?? #colorLiteral(red: 0.9293015599, green: 0.5319302678, blue: 0.8638190627, alpha: 1),
+        UIColor(named: "7") ?? #colorLiteral(red: 0.9840622544, green: 0.8660314083, blue: 0.8633159399, alpha: 1),
+        UIColor(named: "8") ?? #colorLiteral(red: 0.2413934469, green: 0.7193134427, blue: 0.9979558587, alpha: 1),
+        UIColor(named: "9") ?? #colorLiteral(red: 0.3105114102, green: 0.9077441692, blue: 0.678263247, alpha: 1),
+        UIColor(named: "10") ?? #colorLiteral(red: 0.270511806, green: 0.2811065316, blue: 0.559990108, alpha: 1),
+        UIColor(named: "11") ?? #colorLiteral(red: 1, green: 0.4940689206, blue: 0.372153759, alpha: 1),
+        UIColor(named: "12") ?? #colorLiteral(red: 1, green: 0.679395318, blue: 0.8373131156, alpha: 1),
+        UIColor(named: "13") ?? #colorLiteral(red: 0.975395143, green: 0.8091526628, blue: 0.6130551696, alpha: 1),
+        UIColor(named: "14") ?? #colorLiteral(red: 0.5460836887, green: 0.6587280631, blue: 0.9697209001, alpha: 1),
+        UIColor(named: "15") ?? #colorLiteral(red: 0.5919097066, green: 0.3043287396, blue: 0.9573236108, alpha: 1),
+        UIColor(named: "16") ?? #colorLiteral(red: 0.7400739789, green: 0.4470193386, blue: 0.8836612701, alpha: 1),
+        UIColor(named: "17") ?? #colorLiteral(red: 0.6243798137, green: 0.5432854891, blue: 0.9222726226, alpha: 1),
+        UIColor(named: "18") ?? #colorLiteral(red: 0.1919171214, green: 0.8337991834, blue: 0.4192006886, alpha: 1)
+    ]
     // MARK: - UI Elements
     private let newHabitLabel: UILabel = {
         let label = UILabel()
@@ -165,6 +186,7 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         collectionView.allowsMultipleSelection = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         
+        colorsCollectionView.delegate = self
         colorsCollectionView.dataSource = self
         colorsCollectionView.register(ColorsCollectionViewCell.self, forCellWithReuseIdentifier: "colorCell")
         colorsCollectionView.allowsMultipleSelection = false
@@ -446,44 +468,105 @@ extension NewHabitViewController: UICollectionViewDataSource {
         }
     }
     
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        if collectionView == colorsCollectionView {
+//            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorsCollectionViewCell
+//            cell?.colorImageView.backgroundColor = colors[indexPath.row]
+//
+//            if let selectedColorIndex = selectedColor, indexPath.row == selectedColor {
+//                cell?.isSelected = true
+//            } else {
+//                cell?.isSelected = false
+//            }
+//            return cell!
+//        } else {
+//            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "emojiCell", for: indexPath) as? EmojiCollectionViewCell
+//
+//            let emojiString = emoji[indexPath.row]
+//            let attributes: [NSAttributedString.Key: Any] = [
+//                .font: UIFont.systemFont(ofSize: 32, weight: .bold)
+//            ]
+//            let attributedEmoji = NSAttributedString(string: emojiString, attributes: attributes)
+//            cell?.emojiLabel.attributedText = attributedEmoji
+//            return cell!
+//        }
+//    }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == colorsCollectionView {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorsCollectionViewCell
-            cell?.colorImageView.image = UIImage(named: colors[indexPath.row])
+            cell?.colorImageView.backgroundColor = colors[indexPath.row]
+            
+            if let selectedColorIndex = selectedColor, indexPath.row == selectedColor {
+                cell?.isSelected = true
+            } else {
+                cell?.isSelected = false
+            }
+            
             return cell!
-        } else {
+            
+        } else if collectionView == self.collectionView {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "emojiCell", for: indexPath) as? EmojiCollectionViewCell
-
             let emojiString = emoji[indexPath.row]
             let attributes: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 32, weight: .bold)
             ]
             let attributedEmoji = NSAttributedString(string: emojiString, attributes: attributes)
             cell?.emojiLabel.attributedText = attributedEmoji
+            
+            if let selectedEmojiIndex = selectedEmoji, indexPath.row == selectedEmoji {
+                cell?.backgroundColor = UIColor(named: "Light Gray")
+                cell?.layer.cornerRadius = 16
+            } else {
+                cell?.backgroundColor = .clear
+            }
+            
             return cell!
+        } else {
+            return UICollectionViewCell()
         }
     }
-
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == self.colorsCollectionView {
+            selectedColor = indexPath.row
+        } else if collectionView == self.collectionView {
+            
+            if let previousSelectedEmojiIndex = selectedEmoji {
+                let previousIndexPath = IndexPath(row: previousSelectedEmojiIndex, section: 0)
+                if let previousCell = collectionView.cellForItem(at: previousIndexPath) as? EmojiCollectionViewCell {
+                    previousCell.backgroundColor = .clear
+                }
+            }
+            selectedEmoji = indexPath.row
+            collectionView.reloadItems(at: [indexPath])
+        }
+    }
 }
 
 extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let numberOfItemsPerRow: CGFloat = 6
-        let numberOfItemsPerColumn: CGFloat = 3
-        let spacingBetweenCells: CGFloat = 5
-        
-        if collectionView == colorsCollectionView {
-            let totalHorizontalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
-            let totalVerticalSpacing = (numberOfItemsPerColumn - 1) * spacingBetweenCells
-            let width = (collectionView.bounds.width - totalHorizontalSpacing) / numberOfItemsPerRow
-            let height = (collectionView.bounds.height - totalVerticalSpacing) / numberOfItemsPerColumn
-            return CGSize(width: width, height: height)
-        } else {
-            let totalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
-            let width = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
-            let height = width
-            return CGSize(width: 52, height: 52)
-        }
+//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+//        let numberOfItemsPerRow: CGFloat = 6
+//        let numberOfItemsPerColumn: CGFloat = 3
+//        let spacingBetweenCells: CGFloat = 5
+//
+//        if collectionView == colorsCollectionView {
+//            let totalHorizontalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
+//            let totalVerticalSpacing = (numberOfItemsPerColumn - 1) * spacingBetweenCells
+//            let width = (collectionView.bounds.width - totalHorizontalSpacing) / numberOfItemsPerRow
+//            let height = (collectionView.bounds.height - totalVerticalSpacing) / numberOfItemsPerColumn
+//            return CGSize(width: width, height: height)
+//        } else {
+//            let totalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
+//            let width = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
+//            let height = width
+//            return CGSize(width: 52, height: 52)
+//        }
+//    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 52, height: 52)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
