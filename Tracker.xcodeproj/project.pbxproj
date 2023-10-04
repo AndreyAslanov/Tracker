@@ -32,6 +32,7 @@
 		E76C126C2ACB4E4700024161 /* TrackerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C126B2ACB4E4700024161 /* TrackerHeader.swift */; };
 		E76C126E2ACB4E5300024161 /* EmojiCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C126D2ACB4E5300024161 /* EmojiCollectionViewCell.swift */; };
 		E76C12702ACB4E6000024161 /* ColorsCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C126F2ACB4E6000024161 /* ColorsCollectionViewCell.swift */; };
+		E76C12962ACC7A4500024161 /* Tracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E76C12942ACC7A4500024161 /* Tracker.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		E76C126B2ACB4E4700024161 /* TrackerHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerHeader.swift; sourceTree = "<group>"; };
 		E76C126D2ACB4E5300024161 /* EmojiCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCollectionViewCell.swift; sourceTree = "<group>"; };
 		E76C126F2ACB4E6000024161 /* ColorsCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorsCollectionViewCell.swift; sourceTree = "<group>"; };
+		E76C12952ACC7A4500024161 /* Tracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Tracker.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 		E76C122C2ACB499100024161 /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				E76C12942ACC7A4500024161 /* Tracker.xcdatamodeld */,
 				E76C123B2ACB499200024161 /* Info.plist */,
 				E76C12482ACB4B3800024161 /* Presenter */,
 				E76C12472ACB4B3400024161 /* Resources */,
@@ -269,6 +272,7 @@
 				E76C12502ACB4C6600024161 /* TrackerManager.swift in Sources */,
 				E76C12602ACB4D4000024161 /* TrackersSheduleViewController.swift in Sources */,
 				E76C124A2ACB4C1800024161 /* TrackerCell.swift in Sources */,
+				E76C12962ACC7A4500024161 /* Tracker.xcdatamodeld in Sources */,
 				E76C12302ACB499100024161 /* SceneDelegate.swift in Sources */,
 				E76C124E2ACB4C4A00024161 /* TrackerCreator.swift in Sources */,
 				E76C12642ACB4E1200024161 /* StatisticViewController.swift in Sources */,
@@ -498,6 +502,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		E76C12942ACC7A4500024161 /* Tracker.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				E76C12952ACC7A4500024161 /* Tracker.xcdatamodel */,
+			);
+			currentVersion = E76C12952ACC7A4500024161 /* Tracker.xcdatamodel */;
+			path = Tracker.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = E76C12222ACB499100024161 /* Project object */;
 }

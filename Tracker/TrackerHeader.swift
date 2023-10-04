@@ -35,7 +35,7 @@ final class TrackerHeader: UICollectionReusableView {
         addSubview(headerLabel)
         
         NSLayoutConstraint.activate([
-            headerLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 28),
+            headerLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),     //исправил
             headerLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             headerLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
         ])
