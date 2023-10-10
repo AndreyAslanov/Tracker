@@ -16,6 +16,7 @@ final class TrackerViewController: UIViewController {
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var trackersId = Set<UUID>()
+    private let trackerStore = TrackerStore()
     
     // MARK: - UI Elements
     private lazy var addTrackerButton: UIBarButtonItem = {
@@ -90,11 +91,23 @@ final class TrackerViewController: UIViewController {
         setupUI()
         setupConstraints()
         
+        let trackerStore = TrackerStore()
+        categories = trackerStore.trackers.map { TrackerCategory(title: "Категория", trackers: [$0])}
+        
         visibleCategories = categories
+        
+        let trackerRecordStore = TrackerRecordStore.shared
+        completedTrackers = trackerRecordStore.trackerRecords
+//        trackerCollectionView.reloadData()
+        print("Loaded \(completedTrackers.count) completed trackers from Core Data.")
+//        updateVisibleCategories()
+        trackerCollectionView.reloadData()
+        
         pictureStackView.isHidden = !visibleCategories.isEmpty
+        trackerCollectionView.reloadData()
         
         TrackerManager.shared.clearCompletedTrackers()
-        
+        filterDataByDate()
         createDatePicker.addTarget(self, action: #selector(datePickerChanged), for: .valueChanged)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -179,6 +192,7 @@ final class TrackerViewController: UIViewController {
         let trackerCreator = TrackerCreatorViewController(delegate: self)
         trackerCreator.delegate = self
         trackerCreator.categories = categories
+        trackerCreator.trackerStore = trackerStore
         let navigationController = UINavigationController(rootViewController: trackerCreator)
         present(navigationController, animated: true)
     }
@@ -227,7 +241,7 @@ extension TrackerViewController: UICollectionViewDataSource {
         let resCompare = Calendar.current.compare(Date(), to: currentDate, toGranularity: .day)
         let completionCount = TrackerManager.shared.getCompletionCount(for: tracker.id)
         let isTrackerDone = TrackerManager.shared.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
-        
+
         let model = TrackerCellViewModel(name: tracker.name,
                                          emoji: tracker.emoji,
                                          color: tracker.color,

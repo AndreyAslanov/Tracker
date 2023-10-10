@@ -17,6 +17,7 @@ final class TrackerCreatorViewController: UIViewController {
     // MARK: - Properties
     weak var delegate: TrackerCreatorDelegate?
     var categories: [TrackerCategory] = []
+    var trackerStore: TrackerStore?
     
     // MARK: - UI Elements
     private let topLabel: UILabel = {
@@ -122,6 +123,13 @@ final class TrackerCreatorViewController: UIViewController {
 extension TrackerCreatorViewController: NewHabitViewControllerDelegate {
     func newTrackerCreated(_ tracker: Tracker) {
         delegate?.newTrackerCreated(tracker)
+        
+        guard let trackerStore = trackerStore else { return }
+        do {
+            let trackerCoreData = try trackerStore.createTracker(from: tracker)
+        } catch {
+            print("Ошибка при сохранении трекера в CoreData: \(error)")
+        }
     }
 }
 

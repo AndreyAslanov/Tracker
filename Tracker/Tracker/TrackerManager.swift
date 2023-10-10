@@ -22,6 +22,11 @@ class TrackerManager {
     func markTrackerAsCompleted(trackerId: UUID, date: Date) {
         let completedTracker = CompletedTracker(trackerId: trackerId, date: date)
         completedTrackers.append(completedTracker)
+        
+        let savedCompletedTrackers = completedTrackers
+         print("Выполненные трекеры: \(savedCompletedTrackers)")
+         
+         TrackerRecordStore.shared.saveCompletedTracker(completedTracker)
     }
     
     func isTrackerCompleted(trackerId: UUID, date: Date) -> Bool {
