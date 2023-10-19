@@ -97,7 +97,7 @@ final class TrackerCreatorViewController: UIViewController {
         ])
     }
     
-    // MARK: - Buttons
+// MARK: - Buttons
     @objc private func habitButtonTapped() {
         delegate?.didSelectTrackerType("Привычка")
         
@@ -113,13 +113,15 @@ final class TrackerCreatorViewController: UIViewController {
         delegate?.didSelectTrackerType("Нерегулярное событие")
         
         let newEventViewController = NewEventViewController()
+        newEventViewController.delegate = self
+        newEventViewController.categories = categories
         addChild(newEventViewController)
         view.addSubview(newEventViewController.view)
         newEventViewController.didMove(toParent: self)
     }
 }
 
-    // MARK: - Extension
+// MARK: - Extensions
 extension TrackerCreatorViewController: NewHabitViewControllerDelegate {
     func newTrackerCreated(_ tracker: Tracker) {
         delegate?.newTrackerCreated(tracker)
@@ -133,3 +135,16 @@ extension TrackerCreatorViewController: NewHabitViewControllerDelegate {
     }
 }
 
+extension TrackerCreatorViewController: NewEventViewControllerDelegate {
+    func newEventTrackerCreated(_ tracker: Tracker) {
+        delegate?.newTrackerCreated(tracker)
+        
+        guard let trackerStore = trackerStore else { return }
+        do {
+            let trackerCoreData = try trackerStore.createTracker(from: tracker)
+            print("Новое нерегулярное событие сохранено")
+        } catch {
+            print("Ошибка при сохранении нерегулярного события в CoreData: \(error)")
+        }
+    }
+}

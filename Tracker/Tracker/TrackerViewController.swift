@@ -17,6 +17,7 @@ final class TrackerViewController: UIViewController {
     private var completedTrackers: [TrackerRecord] = []
     private var trackersId = Set<UUID>()
     private let trackerStore = TrackerStore()
+    private let trackerRecordStore = TrackerRecordStore()
     
     // MARK: - UI Elements
     private lazy var addTrackerButton: UIBarButtonItem = {
@@ -91,28 +92,37 @@ final class TrackerViewController: UIViewController {
         setupUI()
         setupConstraints()
         
-        let trackerStore = TrackerStore()
-        categories = trackerStore.trackers.map { TrackerCategory(title: "Категория", trackers: [$0])}
+        trackerStore.delegate = self
+        updateCategories()
         
-        visibleCategories = categories
-        
-        let trackerRecordStore = TrackerRecordStore.shared
-        completedTrackers = trackerRecordStore.trackerRecords
-//        trackerCollectionView.reloadData()
+        updateCompletedTrackers()
+
         print("Loaded \(completedTrackers.count) completed trackers from Core Data.")
-//        updateVisibleCategories()
-        trackerCollectionView.reloadData()
         
         pictureStackView.isHidden = !visibleCategories.isEmpty
         trackerCollectionView.reloadData()
         
-        TrackerManager.shared.clearCompletedTrackers()
         filterDataByDate()
         createDatePicker.addTarget(self, action: #selector(datePickerChanged), for: .valueChanged)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
+    }
+
+    private func updateCategories() {
+        categories = trackerStore.trackers.map { TrackerCategory(title: "Категория", trackers: [$0])}
+        visibleCategories = categories
+    }
+
+    private func updateCompletedTrackers() {
+        if let completedTrackers = trackerRecordStore.trackerRecords {
+            self.completedTrackers = completedTrackers
+            print("Loaded \(completedTrackers.count) completed trackers from Core Data.")
+        } else {
+            self.completedTrackers = []
+            print("No completed trackers loaded from Core Data.")
+        }
     }
     
     // MARK: - UI Setup
@@ -180,10 +190,10 @@ final class TrackerViewController: UIViewController {
         }
         trackerCollectionView.reloadData()
     }
-    
+
     // MARK: - User Actions
     @objc private func datePickerChanged(sender: UIDatePicker) {
-        currentDate = createDatePicker.date
+        currentDate = createDatePicker.date.withoutTime()!
         filters()
     }
     
@@ -203,7 +213,6 @@ final class TrackerViewController: UIViewController {
 }
 
 // MARK: - Extensions
-
 extension TrackerViewController: TrackerCreatorDelegate {
     
     func didSelectTrackerType(_ type: String) {
@@ -233,27 +242,33 @@ extension TrackerViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.cellID, for: indexPath) as? TrackerCell
-        else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.cellID, for: indexPath) as? TrackerCell else {
             return UICollectionViewCell()
         }
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
-        let resCompare = Calendar.current.compare(Date(), to: currentDate, toGranularity: .day)
-        let completionCount = TrackerManager.shared.getCompletionCount(for: tracker.id)
-        let isTrackerDone = TrackerManager.shared.isTrackerCompleted(trackerId: tracker.id, date: currentDate)
-
-        let model = TrackerCellViewModel(name: tracker.name,
-                                         emoji: tracker.emoji,
-                                         color: tracker.color,
-                                         trackerIsDone: isTrackerDone,
-                                         doneButtonIsEnabled: resCompare == .orderedSame || resCompare == .orderedDescending,
-                                         counter: UInt(completionCount),
-                                         id: tracker.id)
+        let resCompare = Calendar.current.compare(Date().withoutTime()!, to: currentDate, toGranularity: .day)
+        
+        let trackerRecordForDate = completedTrackers.first { $0.id == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+        
+        let isTrackerDone = trackerRecordForDate != nil
+        
+        let model = TrackerCellViewModel(
+            name: tracker.name,
+            emoji: tracker.emoji,
+            color: tracker.color,
+            trackerIsDone: isTrackerDone,
+            doneButtonIsEnabled: resCompare == .orderedSame || resCompare == .orderedDescending,
+            counter: UInt(completedTrackers.filter { $0.id == tracker.id }.count),
+            id: tracker.id
+        )
+        
         cell.configure(model: model)
-        cell.delegate = self
+        cell.doneCompletion = { [weak self] in
+            self?.executionСontrol(id: tracker.id)
+        }
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: TrackerHeader.header, for: indexPath) as? TrackerHeader
         else {
@@ -278,33 +293,20 @@ extension TrackerViewController: UICollectionViewDelegateFlowLayout {
     }
 }
 
-extension TrackerViewController: TrackerCellDelegate {
+extension TrackerViewController {
     
-    func executionСontrol(id: UUID) {
-        let currentDate = createDatePicker.date
-        let trackerIsDone = TrackerManager.shared.isTrackerCompleted(trackerId: id, date: currentDate)
-        
-        if trackerIsDone {
-            TrackerManager.shared.decreaseCompletionCount(trackerId: id, date: currentDate)
+    func executionСontrol(id: UUID) { // кажется id не нужен, проверить!
+        let rec = TrackerRecord(
+            id: id,
+            date: createDatePicker.date.withoutTime()!
+        )
+        if completedTrackers.contains(rec) {
+            trackerRecordStore.deleteTrackerRecord(rec)
         } else {
-            TrackerManager.shared.markTrackerAsCompleted(trackerId: id, date: currentDate)
+            trackerStore.updateTracker(value: rec)
         }
-        
-        trackerCollectionView.reloadData()
     }
-    
-    private func addExecutionTracker(id: UUID) {
-        let recordTracker = TrackerRecord(id: id, date: currentDate)
-        completedTrackers.append(recordTracker)
-        trackersId.insert(id)
-        trackerCollectionView.reloadData()
-    }
-    
-    private func removeExecutionTracker(id: UUID) {
-        completedTrackers.removeAll { $0.id == id && $0.date == currentDate}
-        trackersId.remove(id)
-        trackerCollectionView.reloadData()
-    }
+
 }
 
 extension TrackerViewController: UISearchResultsUpdating {
@@ -319,3 +321,19 @@ extension TrackerViewController: UISearchControllerDelegate {
     }
 }
 
+extension TrackerViewController: TrackerStoreDelegate {
+    func didUpdate() {
+        updateCategories()
+        updateCompletedTrackers()
+        filterDataByDate()
+        trackerCollectionView.reloadData()
+    }
+}
+
+extension Date {
+    func withoutTime() -> Date? {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: self)
+        return calendar.date(from: components)
+    }
+}

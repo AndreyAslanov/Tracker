@@ -14,35 +14,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        //        // Создаем корневой контроллер для первого экрана
-        //        let rootViewController = OnboardingOne()
-        //        // Создаем навигационный контроллер с корневым контроллером
-        //        let navigationController = UINavigationController(rootViewController: rootViewController)
-        //
-        //        // Настройки окна
-        //        window = UIWindow(frame: UIScreen.main.bounds)
-        //        window?.rootViewController = navigationController
-        //        window?.makeKeyAndVisible()
-        //
-        //        return true
-        
-        /*
-         let trackerViewController = TrackerViewController() // Создаем экземпляр TrackerViewController
-         let navigationController = UINavigationController(rootViewController: trackerViewController) // Помещаем TrackerViewController в UINavigationController
-         
-         window = UIWindow(frame: UIScreen.main.bounds)
-         window?.rootViewController = navigationController // Устанавливаем UINavigationController как корневой контроллер
-         window?.makeKeyAndVisible()
-         
-         return true
-         
-         }
-         */
-        
-        // Создание экземпляра TabBarController
+
         let tabBarController = TabBarController()
-        
-        // Создание UIWindow и установка TabBarController как корневого контроллера
+
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
@@ -50,8 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    // MARK: UISceneSession Lifecycle
-
+    // MARK: - UISceneSession Lifecycle
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let sceneConfiguration = UISceneConfiguration(
             name: "Tracker",
@@ -77,6 +50,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return container
     }()
 }
-
-
-

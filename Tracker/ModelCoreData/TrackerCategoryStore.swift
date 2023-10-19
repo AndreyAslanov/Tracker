@@ -8,6 +8,7 @@
 import UIKit
 import CoreData
 
+// MARK: - struct
 private struct TrackerCategoryStoreUpdate {
     struct Move: Hashable {
         let oldIndex: Int
@@ -19,6 +20,7 @@ private struct TrackerCategoryStoreUpdate {
     let movedIndexes: Set<Move>
 }
 
+// MARK: - TrackerCategoryStore
 class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
     private let trackerStore = TrackerStore()
@@ -50,15 +52,6 @@ class TrackerCategoryStore: NSObject {
         else { return [] }
         return categories
     }
-
-//    convenience override init() {
-//        let context = (UIApplication.shared.delegate as! AppDelegate).persistantContainer.viewContext
-//        self.init(context: context)
-//    }
-//
-//    init(context: NSManagedObjectContext) {
-//        self.context = context
-//    }
     
     convenience override init() {
             if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
@@ -68,6 +61,7 @@ class TrackerCategoryStore: NSObject {
                 fatalError("Unable to access the AppDelegate")
             }
         }
+    
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
@@ -101,7 +95,7 @@ class TrackerCategoryStore: NSObject {
         }
     }
 
-    func createTrackerWithCategory(tracker: Tracker, with titleCategory: String) throws {
+    private func createTrackerWithCategory(tracker: Tracker, with titleCategory: String) throws {
         let trackerCoreData = try trackerStore.createTracker(from: tracker)
         
         if let currentCategory = try? fetchedCategory(with: titleCategory) {
@@ -115,6 +109,7 @@ class TrackerCategoryStore: NSObject {
         }
         do {
             try context.save()
+            print("Tracker saved with category")
         } catch {
             throw TrackerCategoryStoreError.errorCategoryModel
         }

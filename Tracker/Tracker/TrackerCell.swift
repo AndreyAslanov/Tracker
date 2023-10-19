@@ -7,32 +7,9 @@
 
 import UIKit
 
-protocol TrackerCellDelegate: AnyObject {
-    func executionСontrol(id: UUID)
-}
-
 final class TrackerCell: UICollectionViewCell {
     static let cellID = "cellID"
-    weak var delegate: TrackerCellDelegate?
-    
-    private var viewModel: TrackerCellViewModel? {
-        didSet {
-            trackerView.backgroundColor = viewModel?.color
-            nameLabel.text = viewModel?.name ?? ""
-            emojiLabel.text = viewModel?.emoji ?? ""
-            counterLabel.text = "\(viewModel?.counter ?? 0) \(viewModel?.counter.days() ?? "")"
-            doneButton.backgroundColor = viewModel?.color
-            doneButton.isEnabled = viewModel?.doneButtonIsEnabled ?? false
-            doneButton.layer.opacity = viewModel?.doneButtonIsEnabled ?? false == true ? 1 : 0.3
-            var image: UIImage? = nil
-            if let trackerIsDone = viewModel?.trackerIsDone, trackerIsDone {
-                image = UIImage(systemName: "checkmark")
-            } else {
-                image = UIImage(systemName: "plus")
-            }
-            doneButton.setImage(image?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        }
-    }
+    var doneCompletion: (() -> Void)?
     
     // MARK: - UI Elements
     private lazy var trackerView: UIView = {
@@ -90,6 +67,7 @@ final class TrackerCell: UICollectionViewCell {
         return button
     }()
     
+    // MARK: - init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -100,6 +78,27 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     // MARK: - UI Setup
+    func configure(model: TrackerCellViewModel) {
+        trackerView.backgroundColor = model.color
+        nameLabel.text = model.name
+        emojiLabel.text = model.emoji
+        counterLabel.text = "\(model.counter ) \(model.counter.days() )"
+        doneButton.backgroundColor = model.color
+        doneButton.isEnabled = model.doneButtonIsEnabled
+        doneButton.layer.opacity = model.doneButtonIsEnabled == true ? 1 : 0.3
+        setupCheckButton(to: model.trackerIsDone)
+    }
+    
+    func setupCheckButton(to state: Bool) {
+        let image = UIImage(
+            systemName: state ? "checkmark" : "plus"
+        )?.withTintColor(
+            .white,
+            renderingMode: .alwaysOriginal
+        )
+        doneButton.setImage(image, for: .normal)
+    }
+    
     private func setupViews() {
         contentView.addSubview(trackerView)
         contentView.addSubview(managementView)
@@ -147,29 +146,8 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
     
-    func configure(model: TrackerCellViewModel) {
-        self.viewModel = model
-    }
-    
     @objc func doneButtonTapped() {
-        guard let viewModel = viewModel else { return }
-        
-        let updatedTrackerIsDone = !viewModel.trackerIsDone
-        var updatedCounter = viewModel.counter
-        
-        if updatedTrackerIsDone {
-            if updatedCounter > 0 {
-                updatedCounter -= 1
-            }
-        } else {
-            updatedCounter += 1
-        }
-        
-        let updatedViewModel = viewModel.updated(trackerIsDone: updatedTrackerIsDone, counter: updatedCounter)
-        
-        delegate?.executionСontrol(id: updatedViewModel.id)
-
-        self.viewModel = updatedViewModel
+        doneCompletion?()
     }
 }
 
@@ -188,4 +166,3 @@ extension UInt {
         return ""
     }
 }
-

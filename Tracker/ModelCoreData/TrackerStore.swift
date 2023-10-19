@@ -12,41 +12,44 @@ enum TrackerStoreError: Error {
     case error
 }
 
+protocol TrackerStoreDelegate {
+    func didUpdate()
+}
+
+// MARK: - TrackerStore
 final class TrackerStore: NSObject {
     private let context: NSManagedObjectContext
     private let uiColorMarshalling = UIColorMarshalling()
     private let scheduleMarshalling = ScheduleMarshalling()
     
+    var delegate: TrackerStoreDelegate?
+    
+    var insertedIndexes: IndexSet?
+    var deletedIndexes: IndexSet?
+    
     private lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
         let sortDescriptor = NSSortDescriptor(keyPath: \TrackerCoreData.name, ascending: true)
         request.sortDescriptors = [sortDescriptor]
-        let controller = NSFetchedResultsController(fetchRequest: request,
+        let frc = NSFetchedResultsController(fetchRequest: request,
                                                     managedObjectContext: context,
                                                     sectionNameKeyPath: nil,
                                                     cacheName: nil)
-        try? controller.performFetch()
-        return controller
+        try? frc.performFetch()
+        frc.delegate = self
+        return frc
     }()
     
     var trackers: [Tracker] {
-        guard let objects = fetchedResultController.fetchedObjects,
-              let trackers = try? objects.map({ try makeTrackers(from: $0) })
+        guard
+            let objects = fetchedResultController.fetchedObjects,
+            let trackers = try? objects.map({
+                try makeTrackers(from: $0)
+            })
         else { return [] }
         return trackers
     }
-    
-//    convenience override init() {
-//        let context = (UIApplication.shared.delegate as! AppDelegate).persistantContainer.viewContext
-//        self.init(context: context)
-//        print("TrackerStore initialized")
-//    }
-//
-//    init(context: NSManagedObjectContext) {
-//        self.context = context
-//        print("TrackerStore initialized with context: \(context)")
-//    }
-    
+
     convenience override init() {
             if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
                 let context = appDelegate.persistantContainer.viewContext
@@ -69,8 +72,32 @@ final class TrackerStore: NSObject {
         trackerCoreData.color = uiColorMarshalling.hexString(from: tracker.color)
         trackerCoreData.emoji = tracker.emoji
         trackerCoreData.mySchedule = scheduleMarshalling.convertSetToMyScheduleString(tracker.mySchedule)
+        trackerCoreData.records = []
         contextSave()
         return trackerCoreData
+    }
+    
+    func updateTracker(value: TrackerRecord) {
+        let request = TrackerCoreData.fetchRequest()
+        
+        request.predicate = NSPredicate(
+            format: "%K == %@",
+            #keyPath(
+                TrackerCoreData.trackerID
+            ),
+            "\(value.id)"
+        )
+        guard let trackers = try? context.fetch(request) else {
+            assertionFailure("Enabled to fetch(request)")
+            return
+        }
+        if let tracker = trackers.first {
+            let trackerRec = TrackerRecordCoreData(context: context)
+            trackerRec.trackerid = value.id
+            trackerRec.date = value.date
+            tracker.addToRecords(trackerRec)
+            contextSave()
+        }
     }
 
     func makeTrackers(from trackersCoreData: TrackerCoreData) throws -> Tracker {
@@ -79,8 +106,11 @@ final class TrackerStore: NSObject {
               let name = trackersCoreData.name,
               let color = trackersCoreData.color,
               let emoji = trackersCoreData.emoji,
-              let myScheduleString = trackersCoreData.mySchedule
-        else { throw TrackerStoreError.error }
+              let myScheduleString = trackersCoreData.mySchedule,
+              let records = trackersCoreData.records
+        else {
+            print("Failed to retrieve necessary data from CoreData")
+            throw TrackerStoreError.error }
         
         let mySchedule = scheduleMarshalling.convertMyScheduleStringToSet(myScheduleString)
 
@@ -88,10 +118,13 @@ final class TrackerStore: NSObject {
                        name: name,
                        color: uiColorMarshalling.color(from: color),
                        emoji: emoji,
-                       mySchedule: mySchedule)
+                       mySchedule: mySchedule,
+                       records: []
+        )
+       
     }
     
-    func deleteTracker(with id: UUID) {
+    private func deleteTracker(with id: UUID) {
         print("Deleting Tracker with id: \(id)")
         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
         request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCoreData.trackerID), id.uuidString)
@@ -105,7 +138,7 @@ final class TrackerStore: NSObject {
         }
     }
     
-    func deleteAllTrackers() {
+    private func deleteAllTrackers() {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "TrackerCoreData")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
 
@@ -127,6 +160,42 @@ final class TrackerStore: NSObject {
             let error = error as NSError
             assertionFailure("Failed to save context: \(error.localizedDescription)")
             print("Ошибка при сохранении данных в CoreData: \(error.localizedDescription)")
+        }
+    }
+}
+// MARK: - extension
+extension TrackerStore: NSFetchedResultsControllerDelegate {
+    
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        insertedIndexes = IndexSet()
+        deletedIndexes = IndexSet()
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdate(
+        )
+        insertedIndexes = nil
+        deletedIndexes = nil
+    }
+    
+    func controller(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>,
+        didChange anObject: Any,
+        at indexPath: IndexPath?,
+        for type: NSFetchedResultsChangeType,
+        newIndexPath: IndexPath?
+    ) {
+        switch type {
+        case .delete:
+            if let indexPath = indexPath {
+                deletedIndexes?.insert(indexPath.item)
+            }
+        case .insert:
+            if let indexPath = newIndexPath {
+                insertedIndexes?.insert(indexPath.item)
+            }
+        default:
+            break
         }
     }
 }

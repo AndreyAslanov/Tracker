@@ -135,5 +135,3 @@ extension TrackersSheduleViewController: TrackersScheduleTableViewDelegate {
         }
     }
 }
-
-

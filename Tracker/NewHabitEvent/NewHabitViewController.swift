@@ -313,7 +313,7 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
                                  name: name,
                                  color: .red,
                                  emoji: "🍔",
-                                 mySchedule: mySchedule)
+                                 mySchedule: mySchedule, records: [])
        
         delegate?.newTrackerCreated(newTracker)
     }
@@ -467,30 +467,7 @@ extension NewHabitViewController: UICollectionViewDataSource {
             return emoji.count
         }
     }
-    
-//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        if collectionView == colorsCollectionView {
-//            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorsCollectionViewCell
-//            cell?.colorImageView.backgroundColor = colors[indexPath.row]
-//
-//            if let selectedColorIndex = selectedColor, indexPath.row == selectedColor {
-//                cell?.isSelected = true
-//            } else {
-//                cell?.isSelected = false
-//            }
-//            return cell!
-//        } else {
-//            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "emojiCell", for: indexPath) as? EmojiCollectionViewCell
-//
-//            let emojiString = emoji[indexPath.row]
-//            let attributes: [NSAttributedString.Key: Any] = [
-//                .font: UIFont.systemFont(ofSize: 32, weight: .bold)
-//            ]
-//            let attributedEmoji = NSAttributedString(string: emojiString, attributes: attributes)
-//            cell?.emojiLabel.attributedText = attributedEmoji
-//            return cell!
-//        }
-//    }
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == colorsCollectionView {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorsCollectionViewCell
@@ -544,25 +521,6 @@ extension NewHabitViewController: UICollectionViewDataSource {
 }
 
 extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
-//    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        let numberOfItemsPerRow: CGFloat = 6
-//        let numberOfItemsPerColumn: CGFloat = 3
-//        let spacingBetweenCells: CGFloat = 5
-//
-//        if collectionView == colorsCollectionView {
-//            let totalHorizontalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
-//            let totalVerticalSpacing = (numberOfItemsPerColumn - 1) * spacingBetweenCells
-//            let width = (collectionView.bounds.width - totalHorizontalSpacing) / numberOfItemsPerRow
-//            let height = (collectionView.bounds.height - totalVerticalSpacing) / numberOfItemsPerColumn
-//            return CGSize(width: width, height: height)
-//        } else {
-//            let totalSpacing = (numberOfItemsPerRow - 1) * spacingBetweenCells
-//            let width = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
-//            let height = width
-//            return CGSize(width: 52, height: 52)
-//        }
-//    }
-    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -585,6 +543,3 @@ extension NewHabitViewController: UICollectionViewDelegateFlowLayout {
         }
     }
 }
-
-
-
