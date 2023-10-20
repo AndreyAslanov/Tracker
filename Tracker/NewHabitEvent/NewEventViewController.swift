@@ -20,8 +20,8 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
     private var mySchedule: Set<WeekDay> = []
     private var trackersScheduleViewController: TrackersSheduleViewController?
     private let tracker = false
-    private var selectedEmojiIndex: Int?
-    private var selectedColorIndex: Int?
+    private var selectedEmoji: Int?
+    private var selectedColor: Int?
     
     private let emoji = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇" , "🎸", "🏝", "😪"]
     private let colors: [UIColor] = [
@@ -293,10 +293,17 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
     @objc private func createButtonTapped() {
         guard let name = nameTextField.text, !name.isEmpty else { return }
         let mySchedule: Set<WeekDay> = Set([.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday])
+        
+        guard let selectedEmoji = selectedEmoji, selectedEmoji >= 0, selectedEmoji < emoji.count else { return }
+        guard let selectedColor = selectedColor, selectedColor >= 0, selectedColor < colors.count else { return }
+        
+        let emojiInTracker = emoji [selectedEmoji]
+        let colorInTracker = colors [selectedColor]
+        
         let newTracker = Tracker(id: UUID(),
                                  name: name,
-                                 color: .orange,
-                                 emoji: "🥶",
+                                 color: colorInTracker,
+                                 emoji: emojiInTracker,
                                  mySchedule: mySchedule, records: [])
         
         delegate?.newEventTrackerCreated(newTracker)
@@ -304,6 +311,12 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
     }
     
     @objc private func textFieldDidChange() {
+        if let text = nameTextField.text, !text.isEmpty {
+            createButton.backgroundColor = .black
+        } else {
+            createButton.backgroundColor = UIColor(named: "Gray")
+        }
+        
         if let text = nameTextField.text, text.count >= 38 {
             textFieldSymbolConstraintLabel.isHidden = false
         } else {
@@ -404,7 +417,7 @@ extension NewEventViewController: UICollectionViewDataSource {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "colorCell", for: indexPath) as? ColorsCollectionViewCell
             cell?.colorImageView.backgroundColor = colors[indexPath.row]
             
-            if let selectedColorIndex = selectedColorIndex, indexPath.row == selectedColorIndex {
+            if let selectedColor = selectedColor, indexPath.row == selectedColor {
                 cell?.isSelected = true
             } else {
                 cell?.isSelected = false
@@ -421,7 +434,7 @@ extension NewEventViewController: UICollectionViewDataSource {
             let attributedEmoji = NSAttributedString(string: emojiString, attributes: attributes)
             cell?.emojiLabel.attributedText = attributedEmoji
             
-            if let selectedEmojiIndex = selectedEmojiIndex, indexPath.row == selectedEmojiIndex {
+            if let selectedEmoji = selectedEmoji, indexPath.row == selectedEmoji {
                 cell?.backgroundColor = UIColor(named: "Light Gray")
                 cell?.layer.cornerRadius = 16
             } else {
@@ -436,16 +449,16 @@ extension NewEventViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == self.colorsCollectionView {
-            selectedColorIndex = indexPath.row
+            selectedColor = indexPath.row
         } else if collectionView == self.emojiCollectionView {
             
-            if let previousSelectedEmojiIndex = selectedEmojiIndex {
-                let previousIndexPath = IndexPath(row: previousSelectedEmojiIndex, section: 0)
+            if let previousSelectedEmoji = selectedEmoji {
+                let previousIndexPath = IndexPath(row: previousSelectedEmoji, section: 0)
                 if let previousCell = collectionView.cellForItem(at: previousIndexPath) as? EmojiCollectionViewCell {
                     previousCell.backgroundColor = .clear
                 }
             }
-            selectedEmojiIndex = indexPath.row
+            selectedEmoji = indexPath.row
             collectionView.reloadItems(at: [indexPath])
         }
     }

@@ -192,9 +192,16 @@ final class TrackerViewController: UIViewController {
     }
 
     // MARK: - User Actions
+//    @objc private func datePickerChanged(sender: UIDatePicker) {
+//        currentDate = createDatePicker.date.withoutTime()!
+//        filters()
+//    }
+    
     @objc private func datePickerChanged(sender: UIDatePicker) {
-        currentDate = createDatePicker.date.withoutTime()!
-        filters()
+        if let currentDate = createDatePicker.date.withoutTime() {
+            self.currentDate = currentDate
+            filters()
+        }
     }
     
     @objc private func addTrackerButtonTapped() {

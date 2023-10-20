@@ -309,13 +309,27 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         guard !mySchedule.isEmpty else {
             return
         }
+        
+        guard let selectedEmoji = selectedEmoji, selectedEmoji >= 0, selectedEmoji < emoji.count else { return }
+        guard let selectedColor = selectedColor, selectedColor >= 0, selectedColor < colors.count else { return }
+        
+        let emojiInTracker = emoji [selectedEmoji]
+        let colorInTracker = colors [selectedColor]
+        
         let newTracker = Tracker(id: UUID(),
                                  name: name,
-                                 color: .red,
-                                 emoji: "🍔",
+                                 color: colorInTracker,
+                                 emoji: emojiInTracker,
                                  mySchedule: mySchedule, records: [])
        
         delegate?.newTrackerCreated(newTracker)
+    }
+    
+    private func updateCreateButton() {
+        let isTextFieldEmpty = nameTextField.text?.isEmpty ?? true
+        let isScheduleEmpty = mySchedule.isEmpty
+        createButton.isEnabled = !isTextFieldEmpty && !isScheduleEmpty
+        createButton.backgroundColor = createButton.isEnabled ? .black : UIColor(named: "Gray")
     }
     
     @objc private func textFieldDidChange() {
@@ -324,6 +338,7 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         } else {
             textFieldSymbolConstraintLabel.isHidden = true
         }
+        updateCreateButton()
     }
 }
 
@@ -430,6 +445,7 @@ extension NewHabitViewController: TrackerScheduleViewControllerDelegate {
     func selectDays(in schedule: Set<WeekDay>) {
         self.mySchedule = schedule
         updateScheduleCellSubtitle()
+        updateCreateButton()
         dismiss(animated: true)
     }
 }
