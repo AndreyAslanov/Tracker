@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CategoryViewController: UIViewController {
+final class CategoryViewController: UIViewController {
     
     private let topLabel: UILabel = {
         let label = UILabel()
@@ -90,4 +90,3 @@ class CategoryViewController: UIViewController {
 
     }
 }
-

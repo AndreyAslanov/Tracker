@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ColorsCollectionViewCell: UICollectionViewCell {
+final class ColorsCollectionViewCell: UICollectionViewCell {
     let colorLabel = UILabel()
     let colorImageView: UIView = {
         let view = UIView()
@@ -20,10 +20,10 @@ class ColorsCollectionViewCell: UICollectionViewCell {
         didSet {
             if isSelected {
                 let selectedBackgroundView = UIView()
-                selectedBackgroundView.backgroundColor = .clear // Цвет фона
-                selectedBackgroundView.layer.cornerRadius = 8 // скругление
-                selectedBackgroundView.layer.borderWidth = 3 // Ширина границы
-                let borderColor = colorImageView.backgroundColor?.withAlphaComponent(0.3).cgColor //граница
+                selectedBackgroundView.backgroundColor = .clear
+                selectedBackgroundView.layer.cornerRadius = 8
+                selectedBackgroundView.layer.borderWidth = 3
+                let borderColor = colorImageView.backgroundColor?.withAlphaComponent(0.3).cgColor
                 selectedBackgroundView.layer.borderColor = borderColor
                 self.selectedBackgroundView = selectedBackgroundView
             } else {
@@ -43,10 +43,6 @@ class ColorsCollectionViewCell: UICollectionViewCell {
         self.layer.borderColor = nil
         
         NSLayoutConstraint.activate([
-            // colorLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            //  colorLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            // colorView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            //   colorImageView.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 5), // хз
             colorImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             colorImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             colorImageView.heightAnchor.constraint(equalToConstant: 40),

@@ -41,4 +41,3 @@ final class TrackerScheduleTableView: UITableViewCell {
         delegate?.switchValueChanged(switchTap.isOn, at: row)
     }
 }
-
