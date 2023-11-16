@@ -8,7 +8,7 @@
 import UIKit
 
 protocol NewEventViewControllerDelegate: AnyObject {
-    func newEventTrackerCreated(_ tracker: Tracker)
+    func newEventTrackerCreated(_ tracker: Tracker, category: String?)
 }
 
 class NewEventViewController: UIViewController, UITableViewDelegate  {
@@ -19,9 +19,12 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
     // MARK: - Private Properties
     private var mySchedule: Set<WeekDay> = []
     private var trackersScheduleViewController: TrackersSheduleViewController?
+    private let trackerCategoryStore = TrackerCategoryStore()
     private let tracker = false
     private var selectedEmoji: Int?
     private var selectedColor: Int?
+    var categoriesViewModel: CategoryViewControllerModel!
+    var selectedCategory: String?
     
     private let emoji = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇" , "🎸", "🏝", "😪"]
     private let colors: [UIColor] = [
@@ -74,6 +77,22 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
         tableView.backgroundColor = .white
         tableView.layer.cornerRadius = 16
         return tableView
+    }()
+    
+    private var chosenCategory: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.textColor = .gray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private var categoryLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Категория"
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private let cancelButton: UIButton = {
@@ -162,6 +181,9 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
         
         setupHabitUI()
         setupHabitConstraints()
+        
+        let trackerCategoryStore = TrackerCategoryStore()
+        categoriesViewModel = CategoryViewControllerModel(trackerCategoryStore: trackerCategoryStore)
         
         nameTextField.delegate = self
         nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
@@ -282,6 +304,19 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
         }
     }
     
+    private func updateCategoryCellSubtitle() {
+        if let selectedCategory = selectedCategory {
+            chosenCategory.isHidden = false
+            categoryLabel.isHidden = false
+            chosenCategory.text = selectedCategory
+        } else {
+            chosenCategory.isHidden = true
+            categoryLabel.isHidden = true
+            chosenCategory.text = nil
+            categoryLabel.text = nil
+        }
+    }
+    
     @objc private func cancelButtonTapped() {
         dismiss(animated: true, completion: nil)
     }
@@ -293,20 +328,26 @@ class NewEventViewController: UIViewController, UITableViewDelegate  {
     @objc private func createButtonTapped() {
         guard let name = nameTextField.text, !name.isEmpty else { return }
         let mySchedule: Set<WeekDay> = Set([.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday])
-        
+
         guard let selectedEmoji = selectedEmoji, selectedEmoji >= 0, selectedEmoji < emoji.count else { return }
         guard let selectedColor = selectedColor, selectedColor >= 0, selectedColor < colors.count else { return }
-        
+
         let emojiInTracker = emoji [selectedEmoji]
         let colorInTracker = colors [selectedColor]
-        
+
         let newTracker = Tracker(id: UUID(),
                                  name: name,
                                  color: colorInTracker,
                                  emoji: emojiInTracker,
                                  mySchedule: mySchedule, records: [])
+
+        do {
+               try trackerCategoryStore.createTrackerWithCategory(tracker: newTracker, with: selectedCategory ?? "")
+           } catch {
+               print("Error creating tracker with category: \(error)")
+           }
         
-        delegate?.newEventTrackerCreated(newTracker)
+        delegate?.newEventTrackerCreated(newTracker, category: selectedCategory) // Передача трекера и категории
         createButton.backgroundColor = .black
     }
     
@@ -334,12 +375,46 @@ extension NewEventViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "cell") {
             cell.layer.masksToBounds = true
-            cell.layer.cornerRadius = 16
+            
             switch indexPath.row {
             case 0:
-                cell.textLabel?.text = "Категория"
                 cell.backgroundColor = UIColor(named: "Background [day]")
+                cell.layer.cornerRadius = 16
+                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                
+                cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 400)
                 cell.accessoryType = .disclosureIndicator
+                
+                cell.contentView.addSubview(categoryLabel)
+                cell.contentView.addSubview(chosenCategory)
+
+                let categoryLabelTopConstraint = categoryLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 15)
+                let categoryLabelLeadingConstraint = categoryLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16)
+                let categoryLabelHeightConstraint = categoryLabel.heightAnchor.constraint(equalToConstant: 22)
+                
+                let chosenCategoryTopConstraint = chosenCategory.topAnchor.constraint(equalTo: categoryLabel.bottomAnchor, constant: 0)
+                let chosenCategoryLeadingConstraint = chosenCategory.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16)
+                let chosenCategoryBottomConstraint = chosenCategory.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -14)
+                let chosenCategoryHeightConstraint = chosenCategory.heightAnchor.constraint(equalToConstant: 22)
+                
+                if selectedCategory == nil {
+                    chosenCategory.isHidden = true
+                    categoryLabelTopConstraint.constant = 0
+                    categoryLabelLeadingConstraint.isActive = true
+                    categoryLabel.textAlignment = .left
+                } else {
+                    chosenCategory.isHidden = false
+                    categoryLabelTopConstraint.constant = 10
+                    categoryLabelLeadingConstraint.isActive = false
+                    categoryLabel.textAlignment = .left
+                }
+                
+                NSLayoutConstraint.activate([
+                    categoryLabelTopConstraint,
+                    categoryLabelLeadingConstraint,
+                    chosenCategoryTopConstraint,
+                    chosenCategoryLeadingConstraint,
+                    chosenCategoryBottomConstraint])
                 
             default:
                 break
@@ -363,11 +438,23 @@ extension NewEventViewController: UITableViewDataSource {
         switch indexPath.row {
         case 0:
             let categoryVC = CategoryViewController()
+            categoryVC.viewModel = self.categoriesViewModel
+            categoryVC.delegate = self
             let navController = UINavigationController(rootViewController: categoryVC)
             present(navController, animated: true, completion: nil)
         default:
             break
         }
+    }
+}
+
+// MARK: - CategoryViewControllerDelegate
+extension NewEventViewController: CategoryViewControllerDelegate {
+    func didSelectCategory(_ category: TrackerCategory) {
+        selectedCategory = category.title
+        updateCategoryCellSubtitle()
+        tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+        dismiss(animated: true)
     }
 }
 

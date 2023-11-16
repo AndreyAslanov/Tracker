@@ -16,6 +16,13 @@ protocol TrackerStoreDelegate {
     func didUpdate()
 }
 
+protocol TrackerViewControllerDataSource {
+    func numberOfSections() -> Int
+    func dataForCell(at indexPath: IndexPath) -> Tracker?
+    func numberOfRows(at section: Int) -> Int
+    func titleForSection(section: Int) -> String
+}
+
 // MARK: - TrackerStore
 final class TrackerStore: NSObject {
     private let context: NSManagedObjectContext
@@ -23,23 +30,30 @@ final class TrackerStore: NSObject {
     private let scheduleMarshalling = ScheduleMarshalling()
     
     var delegate: TrackerStoreDelegate?
+    var dataSource: TrackerViewControllerDataSource?
     
     var insertedIndexes: IndexSet?
     var deletedIndexes: IndexSet?
     
-    private lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
+    private var currentNameFilter: String?
+    private var currentFilterWeekDay: Int = 0
+    private var selectedCategory: String?
+
+    lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+
         let sortDescriptor = NSSortDescriptor(keyPath: \TrackerCoreData.name, ascending: true)
         request.sortDescriptors = [sortDescriptor]
-        let frc = NSFetchedResultsController(fetchRequest: request,
-                                                    managedObjectContext: context,
-                                                    sectionNameKeyPath: nil,
-                                                    cacheName: nil)
+
+        let frc = NSFetchedResultsController (fetchRequest: request,
+                                              managedObjectContext: context,
+                                              sectionNameKeyPath: #keyPath(TrackerCoreData.category.titleCategory),
+                                              cacheName: nil)
         try? frc.performFetch()
         frc.delegate = self
         return frc
     }()
-    
+
     var trackers: [Tracker] {
         guard
             let objects = fetchedResultController.fetchedObjects,
@@ -47,6 +61,7 @@ final class TrackerStore: NSObject {
                 try makeTrackers(from: $0)
             })
         else { return [] }
+        print("trackers: \(trackers)")
         return trackers
     }
 
@@ -62,6 +77,50 @@ final class TrackerStore: NSObject {
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
+    }
+    
+    func updateCategoryPredicate(category: String?) {
+        selectedCategory = category
+        applyCurrentPredicates()
+    }
+
+    func updateNameFilter(nameFilter: String?) {
+        currentNameFilter = nameFilter
+        applyCurrentPredicates()
+    }
+
+    func updateDayOfWeekPredicate(for date: Date) {
+        currentFilterWeekDay = (Calendar.current.component(.weekday, from: date) + 5) % 7
+        let dayPredicate = NSPredicate(format: "mySchedule CONTAINS[c] %@", "\(currentFilterWeekDay)")
+        fetchedResultController.fetchRequest.predicate = dayPredicate
+
+        do {
+            try fetchedResultController.performFetch()
+        } catch {
+            print("Error performing fetch: \(error)")
+        }
+    }
+
+    func applyCurrentPredicates() {
+        var predicates: [NSPredicate] = []
+        // Предикат для дня недели
+        predicates.append(NSPredicate(format: "mySchedule CONTAINS[c] %@", "\(currentFilterWeekDay)"))
+        // Предикат для категории
+        if let category = selectedCategory {
+            predicates.append(NSPredicate(format: "category.name == %@", category))
+        }
+        // Предикат для фильтрации по названию трекера
+        if let nameFilter = currentNameFilter, !nameFilter.isEmpty {
+            predicates.append(NSPredicate(format: "name CONTAINS[c] %@", nameFilter))
+        }
+        
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        fetchedResultController.fetchRequest.predicate = compoundPredicate
+        do {
+            try fetchedResultController.performFetch()
+        } catch {
+            print("Error performing fetch: \(error)")
+        }
     }
     
     func createTracker(from tracker: Tracker) throws -> TrackerCoreData {
@@ -113,6 +172,7 @@ final class TrackerStore: NSObject {
             throw TrackerStoreError.error }
         
         let mySchedule = scheduleMarshalling.convertMyScheduleStringToSet(myScheduleString)
+        print("My Schedule: \(mySchedule)")
 
         return Tracker(id: id,
                        name: name,
@@ -172,8 +232,7 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdate(
-        )
+        delegate?.didUpdate()
         insertedIndexes = nil
         deletedIndexes = nil
     }
@@ -197,5 +256,24 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
         default:
             break
         }
+    }
+}
+
+extension TrackerStore: TrackerViewControllerDataSource {
+    func numberOfSections() -> Int {
+        return fetchedResultController.sections?.count ?? 0
+    }
+    
+    func dataForCell(at indexPath: IndexPath) -> Tracker? {
+        return try? makeTrackers(from: fetchedResultController.object(at: indexPath))
+    }
+
+    func numberOfRows(at section: Int) -> Int {
+        return fetchedResultController.sections?[section].numberOfObjects ?? 0
+    }
+
+    func titleForSection(section: Int) -> String {
+        return fetchedResultController.sections?[section].name ?? ""
+
     }
 }

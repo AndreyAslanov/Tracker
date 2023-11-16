@@ -7,12 +7,15 @@
 
 import UIKit
 
+protocol TrackerViewControllerDelegate: AnyObject {
+    func createTracker(_ tracker: Tracker?, titleCategory: String?)
+}
+
 final class TrackerViewController: UIViewController {
 
     // MARK: - Properties
     var currentDate: Date = Date()
     
-    private var visibleCategories: [TrackerCategory] = []
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var trackersId = Set<UUID>()
@@ -91,15 +94,12 @@ final class TrackerViewController: UIViewController {
         
         setupUI()
         setupConstraints()
-        
+
         trackerStore.delegate = self
-        updateCategories()
+        trackerStore.dataSource = trackerStore
         
         updateCompletedTrackers()
-
-        print("Loaded \(completedTrackers.count) completed trackers from Core Data.")
-        
-        pictureStackView.isHidden = !visibleCategories.isEmpty
+        pictureStackView.isHidden = trackerStore.numberOfSections() > 0
         trackerCollectionView.reloadData()
         
         filterDataByDate()
@@ -108,11 +108,6 @@ final class TrackerViewController: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
-    }
-
-    private func updateCategories() {
-        categories = trackerStore.trackers.map { TrackerCategory(title: "Категория", trackers: [$0])}
-        visibleCategories = categories
     }
 
     private func updateCompletedTrackers() {
@@ -162,45 +157,44 @@ final class TrackerViewController: UIViewController {
     }
     
     // MARK: - Data Filtering
-    private func filterDataByDate() {
-        let calendar = Calendar.current
-        let filterWeekDay = (calendar.component(.weekday, from: currentDate) + 5) % 7
-        filterData { tracker in
-            tracker.mySchedule.isEmpty || tracker.mySchedule.contains { weekDay in
-                return weekDay.rawValue == filterWeekDay
-            }
-        }
-    }
-    
-    private func filterData(filteringСondition:(Tracker)->(Bool)) {
-        visibleCategories = categories.map { trackerCategory in
-            TrackerCategory(title: trackerCategory.title,
-                            trackers: trackerCategory.trackers.filter { filteringСondition($0) })
-        }.filter { $0.trackers.count > 0 }
-        pictureStackView.isHidden = !visibleCategories.isEmpty
-    }
-    
     private func filters() {
         if let filterText = searchController.searchBar.searchTextField.text?.lowercased(), filterText.count > 0 {
-            filterData { tracker in
-                tracker.name.lowercased().hasPrefix(filterText)
-            }
+            trackerStore.updateNameFilter(nameFilter: filterText)
         } else {
+            trackerStore.updateNameFilter(nameFilter: nil)
             filterDataByDate()
         }
         trackerCollectionView.reloadData()
     }
-
-    // MARK: - User Actions
-//    @objc private func datePickerChanged(sender: UIDatePicker) {
-//        currentDate = createDatePicker.date.withoutTime()!
-//        filters()
-//    }
     
+    private func filterDataByDate() {
+        let calendar = Calendar.current
+        currentDate = createDatePicker.date
+        trackerStore.updateDayOfWeekPredicate(for: currentDate)
+        trackerStore.applyCurrentPredicates()
+
+        if trackerStore.numberOfSections() == 0 {
+            pictureStackView.isHidden = false
+        } else {
+            pictureStackView.isHidden = true
+        }
+
+        trackerCollectionView.reloadData()
+    }
+
+    func didSelectCategory(_ category: String) {
+        trackerStore.updateCategoryPredicate(category: category)
+        trackerStore.applyCurrentPredicates()
+        trackerCollectionView.reloadData()
+    }
+    
+    // MARK: - User Actions
     @objc private func datePickerChanged(sender: UIDatePicker) {
         if let currentDate = createDatePicker.date.withoutTime() {
             self.currentDate = currentDate
+            trackerStore.updateDayOfWeekPredicate(for: currentDate)
             filters()
+            trackerCollectionView.reloadData()
         }
     }
     
@@ -221,67 +215,68 @@ final class TrackerViewController: UIViewController {
 
 // MARK: - Extensions
 extension TrackerViewController: TrackerCreatorDelegate {
-    
     func didSelectTrackerType(_ type: String) {
         print("Selected tracker type: \(type)")
     }
-    
-    func newTrackerCreated(_ tracker: Tracker) {
-        let newCategory = TrackerCategory(
-            title: "Новая категория",
-            trackers: [tracker]
-        )
-        
+
+    func newTrackerCreated(_ tracker: Tracker, category: String?) {
+        trackerCollectionView.reloadData()
+        let newCategory = TrackerCategory(title: category ?? "Категория1", trackers: [tracker])
         categories.append(newCategory)
         filters()
         trackerCollectionView.reloadData()
         dismiss(animated: true, completion: nil)
+        print("category: \(category ?? "Категория1")")
     }
 }
-
+// MARK: - Collection
 extension TrackerViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        visibleCategories.count
+        return trackerStore.numberOfSections()
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        visibleCategories[section].trackers.count
+        return trackerStore.numberOfRows(at: section)
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.cellID, for: indexPath) as? TrackerCell else {
             return UICollectionViewCell()
         }
-        let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
-        let resCompare = Calendar.current.compare(Date().withoutTime()!, to: currentDate, toGranularity: .day)
-        
-        let trackerRecordForDate = completedTrackers.first { $0.id == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
-        
-        let isTrackerDone = trackerRecordForDate != nil
-        
-        let model = TrackerCellViewModel(
-            name: tracker.name,
-            emoji: tracker.emoji,
-            color: tracker.color,
-            trackerIsDone: isTrackerDone,
-            doneButtonIsEnabled: resCompare == .orderedSame || resCompare == .orderedDescending,
-            counter: UInt(completedTrackers.filter { $0.id == tracker.id }.count),
-            id: tracker.id
-        )
-        
-        cell.configure(model: model)
-        cell.doneCompletion = { [weak self] in
-            self?.executionСontrol(id: tracker.id)
+
+        if let tracker = trackerStore.dataForCell(at: indexPath) {
+            let resCompare = Calendar.current.compare(Date().withoutTime()!, to: currentDate, toGranularity: .day)
+            let trackerRecordForDate = completedTrackers.first { $0.id == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
+            let isTrackerDone = trackerRecordForDate != nil
+            
+            let model = TrackerCellViewModel(
+                name: tracker.name,
+                emoji: tracker.emoji,
+                color: tracker.color,
+                trackerIsDone: isTrackerDone,
+                doneButtonIsEnabled: resCompare == .orderedSame || resCompare == .orderedDescending,
+                counter: UInt(completedTrackers.filter { $0.id == tracker.id }.count),
+                id: tracker.id
+            )
+            
+            cell.configure(model: model)
+            cell.doneCompletion = { [weak self] in
+                self?.executionСontrol(id: tracker.id)
+            }
         }
+
         return cell
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: TrackerHeader.header, for: indexPath) as? TrackerHeader
         else {
             return UICollectionReusableView()
         }
-        view.configure(headerText: visibleCategories[indexPath.section].title)
+        
+        let sectionTitle = trackerStore.titleForSection(section: indexPath.section)
+        view.configure(headerText: sectionTitle)
+        
         return view
     }
 }
@@ -330,10 +325,10 @@ extension TrackerViewController: UISearchControllerDelegate {
 
 extension TrackerViewController: TrackerStoreDelegate {
     func didUpdate() {
-        updateCategories()
         updateCompletedTrackers()
         filterDataByDate()
         trackerCollectionView.reloadData()
+        pictureStackView.isHidden = trackerStore.numberOfSections() > 0
     }
 }
 
@@ -342,5 +337,27 @@ extension Date {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day], from: self)
         return calendar.date(from: components)
+    }
+}
+
+extension TrackerViewController: TrackerViewControllerDataSource {
+    func numberOfSections() -> Int {
+        return trackerStore.numberOfSections()
+    }
+    
+    func dataForCell(at indexPath: IndexPath) -> Tracker? {
+        return trackerStore.dataForCell(at: indexPath)
+    }
+
+    func numberOfRows(at section: Int) -> Int {
+        return trackerStore.numberOfRows(at: section)
+    }
+
+    func titleForSection(section: Int) -> String {
+        return trackerStore.titleForSection(section: section)
+    }
+    
+    func trackerStoreDidUpdate(_ trackerStore: TrackerStore) {
+        trackerCollectionView.reloadData()
     }
 }
