@@ -8,6 +8,10 @@
 import UIKit
 import CoreData
 
+protocol TrackerCategoryStoreDelegate {
+    func update()
+}
+
 // MARK: - struct
 private struct TrackerCategoryStoreUpdate {
     struct Move: Hashable {
@@ -30,6 +34,10 @@ class TrackerCategoryStore: NSObject {
     private var updatedIndexes: IndexSet?
     private var movedIndexes: Set<TrackerCategoryStoreUpdate.Move>?
     
+    public static let shared = TrackerCategoryStore()
+    
+    var delegate: TrackerCategoryStoreDelegate?
+    
     private lazy var fetchedResultController: NSFetchedResultsController<TrackerCategoryCoreData>! = {
         let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
         let sortDescriptor = NSSortDescriptor(keyPath: \TrackerCategoryCoreData.titleCategory, ascending: true)
@@ -50,6 +58,7 @@ class TrackerCategoryStore: NSObject {
             let objects = self.fetchedResultController.fetchedObjects,
             let categories = try? objects.map({ try self.makeCategories(from: $0) })
         else { return [] }
+        print("Categories: \(categories)")
         return categories
     }
     
@@ -94,18 +103,29 @@ class TrackerCategoryStore: NSObject {
             throw TrackerCategoryStoreError.errorCategoryModel
         }
     }
+    
+    func createCategory(_ category: TrackerCategory) throws {
+        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else { return }
+        let categoryEntity = TrackerCategoryCoreData(entity: entity, insertInto: context)
 
-    private func createTrackerWithCategory(tracker: Tracker, with titleCategory: String) throws {
-        let trackerCoreData = try trackerStore.createTracker(from: tracker)
+        categoryEntity.titleCategory = category.title
+        categoryEntity.trackers = NSSet(array: [])
+
+        try context.save()
+        try fetchedResultController.performFetch()
         
+        print("createCategory в TrackerCategoryStore: \(category.title)")
+    }
+    
+    func createTrackerWithCategory(tracker: Tracker, with titleCategory: String) throws {
         if let currentCategory = try? fetchedCategory(with: titleCategory) {
-            guard let trackers = currentCategory.trackers, var newCoreDataTrackers = trackers.allObjects as? [TrackerCoreData] else { return }
-            newCoreDataTrackers.append(trackerCoreData)
-            currentCategory.trackers = NSSet(array: newCoreDataTrackers)
+            let trackerCoreData = try trackerStore.createTracker(from: tracker)
+            currentCategory.addToTrackers(trackerCoreData)
         } else {
             let newCategory = TrackerCategoryCoreData(context: context)
             newCategory.titleCategory = titleCategory
-            newCategory.trackers = NSSet(array: [trackerCoreData])
+            let trackerCoreData = try trackerStore.createTracker(from: tracker)
+            newCategory.addToTrackers(trackerCoreData)
         }
         do {
             try context.save()
@@ -114,7 +134,7 @@ class TrackerCategoryStore: NSObject {
             throw TrackerCategoryStoreError.errorCategoryModel
         }
     }
-    
+
     private func contextSave() {
         do {
             try context.save()

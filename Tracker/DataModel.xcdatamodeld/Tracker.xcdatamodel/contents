@@ -2,7 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22D49" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="TrackerCategoryCoreData" representedClassName="TrackerCategoryCoreData" syncable="YES" codeGenerationType="class">
         <attribute name="titleCategory" attributeType="String"/>
-        <relationship name="trackers" toMany="YES" deletionRule="Nullify" destinationEntity="TrackerCoreData" inverseName="category" inverseEntity="TrackerCoreData"/>
+        <relationship name="trackers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TrackerCoreData" inverseName="category" inverseEntity="TrackerCoreData"/>
     </entity>
     <entity name="TrackerCoreData" representedClassName="TrackerCoreData" syncable="YES" codeGenerationType="class">
         <attribute name="color" attributeType="String"/>

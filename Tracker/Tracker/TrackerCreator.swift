@@ -9,7 +9,7 @@ import UIKit
 
 protocol TrackerCreatorDelegate: AnyObject {
     func didSelectTrackerType(_ type: String)
-    func newTrackerCreated(_ tracker: Tracker)
+    func newTrackerCreated(_ tracker: Tracker, category: String?)
 }
 
 final class TrackerCreatorViewController: UIViewController {
@@ -123,28 +123,13 @@ final class TrackerCreatorViewController: UIViewController {
 
 // MARK: - Extensions
 extension TrackerCreatorViewController: NewHabitViewControllerDelegate {
-    func newTrackerCreated(_ tracker: Tracker) {
-        delegate?.newTrackerCreated(tracker)
-        
-        guard let trackerStore = trackerStore else { return }
-        do {
-            let trackerCoreData = try trackerStore.createTracker(from: tracker)
-        } catch {
-            print("Ошибка при сохранении трекера в CoreData: \(error)")
-        }
+    func newTrackerCreated(_ tracker: Tracker, category: String?) {
+        delegate?.newTrackerCreated(tracker, category: category)
     }
 }
 
 extension TrackerCreatorViewController: NewEventViewControllerDelegate {
-    func newEventTrackerCreated(_ tracker: Tracker) {
-        delegate?.newTrackerCreated(tracker)
-        
-        guard let trackerStore = trackerStore else { return }
-        do {
-            let trackerCoreData = try trackerStore.createTracker(from: tracker)
-            print("Новое нерегулярное событие сохранено")
-        } catch {
-            print("Ошибка при сохранении нерегулярного события в CoreData: \(error)")
-        }
+    func newEventTrackerCreated(_ tracker: Tracker, category: String?) {
+        delegate?.newTrackerCreated(tracker, category: category)
     }
 }

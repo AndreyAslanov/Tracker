@@ -8,7 +8,7 @@
 import UIKit
 
 protocol NewHabitViewControllerDelegate: AnyObject {
-    func newTrackerCreated(_ tracker: Tracker)
+    func newTrackerCreated(_ tracker: Tracker, category: String?)
 }
 
 final class NewHabitViewController: UIViewController, UITableViewDelegate {
@@ -17,8 +17,11 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
     private let tracker = false
     private var mySchedule: Set<WeekDay> = []
     private var trackersScheduleViewController: TrackersSheduleViewController?
+    private let trackerCategoryStore = TrackerCategoryStore()
     weak var delegate: NewHabitViewControllerDelegate?
     var categories: [TrackerCategory] = []
+    var categoriesViewModel: CategoryViewControllerModel!
+    var selectedCategory: String?
     
     private var selectedEmoji: Int?
     private var selectedColor: Int?
@@ -111,6 +114,22 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         return label
     }()
     
+    private var chosenCategory: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.textColor = .gray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private var categoryLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Категория"
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private var daysLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
@@ -171,6 +190,8 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         
         setupHabitUI()
         setupHabitConstraints()
+        let trackerCategoryStore = TrackerCategoryStore()
+        categoriesViewModel = CategoryViewControllerModel(trackerCategoryStore: trackerCategoryStore)
         
         nameTextField.delegate = self
         nameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
@@ -291,6 +312,19 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         }
     }
     
+    private func updateCategoryCellSubtitle() {
+        if let selectedCategory = selectedCategory {
+            chosenCategory.isHidden = false
+            categoryLabel.isHidden = false
+            chosenCategory.text = selectedCategory
+        } else {
+            chosenCategory.isHidden = true
+            categoryLabel.isHidden = true
+            chosenCategory.text = nil
+            categoryLabel.text = nil
+        }
+    }
+    
     // MARK: - Buttons and TextField
     @objc private func dismissKeyboard() {
         view.endEditing(true)
@@ -301,11 +335,7 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
     }
     
     @objc private func createButtonTapped() {
-        print("createButtonTapped() вызван")
-        
-        guard let name = nameTextField.text, !name.isEmpty else {
-            return
-        }
+        guard let name = nameTextField.text, !name.isEmpty else { return }
         guard !mySchedule.isEmpty else {
             return
         }
@@ -313,17 +343,23 @@ final class NewHabitViewController: UIViewController, UITableViewDelegate {
         guard let selectedEmoji = selectedEmoji, selectedEmoji >= 0, selectedEmoji < emoji.count else { return }
         guard let selectedColor = selectedColor, selectedColor >= 0, selectedColor < colors.count else { return }
         
-        let emojiInTracker = emoji [selectedEmoji]
-        let colorInTracker = colors [selectedColor]
+        let emojiInTracker = emoji[selectedEmoji]
+        let colorInTracker = colors[selectedColor]
         
         let newTracker = Tracker(id: UUID(),
                                  name: name,
                                  color: colorInTracker,
                                  emoji: emojiInTracker,
                                  mySchedule: mySchedule, records: [])
-       
-        delegate?.newTrackerCreated(newTracker)
+        do {
+               try trackerCategoryStore.createTrackerWithCategory(tracker: newTracker, with: selectedCategory ?? "")
+           } catch {
+               print("Error creating tracker with category: \(error)")
+           }
+        
+        delegate?.newTrackerCreated(newTracker, category: selectedCategory) // Передача трекера и категории
     }
+
     
     private func updateCreateButton() {
         let isTextFieldEmpty = nameTextField.text?.isEmpty ?? true
@@ -354,17 +390,50 @@ extension NewHabitViewController: UITableViewDataSource {
             
             switch indexPath.row {
             case 0:
-                cell.textLabel?.text = "Категория"
                 cell.backgroundColor = UIColor(named: "Background [day]")
                 cell.layer.cornerRadius = 16
+                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+                cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 400)
+                cell.accessoryType = .disclosureIndicator
                 cell.layer.maskedCorners = tracker ?
                 [.layerMinXMinYCorner, .layerMaxXMinYCorner] :
                 [.layerMinXMinYCorner, .layerMaxXMinYCorner]
                 
                 if !tracker {
-                    cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+                    cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
                 }
                 cell.accessoryType = .disclosureIndicator
+                
+                cell.contentView.addSubview(categoryLabel)
+                cell.contentView.addSubview(chosenCategory)
+
+                let categoryLabelTopConstraint = categoryLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 15) //10
+                let categoryLabelLeadingConstraint = categoryLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16) //20
+                let categoryLabelHeightConstraint = categoryLabel.heightAnchor.constraint(equalToConstant: 22)
+                
+                let chosenCategoryTopConstraint = chosenCategory.topAnchor.constraint(equalTo: categoryLabel.bottomAnchor, constant: 0) //0
+                let chosenCategoryLeadingConstraint = chosenCategory.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16) //20
+                let chosenCategoryBottomConstraint = chosenCategory.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -14) //-10
+                let chosenCategoryHeightConstraint = chosenCategory.heightAnchor.constraint(equalToConstant: 22)
+                
+                if selectedCategory == nil {
+                    chosenCategory.isHidden = true
+                    categoryLabelTopConstraint.constant = 10
+                    categoryLabelLeadingConstraint.isActive = true
+                    categoryLabel.textAlignment = .left
+                } else {
+                    chosenCategory.isHidden = false
+                    categoryLabelTopConstraint.constant = 0
+                    categoryLabelLeadingConstraint.isActive = false
+                    categoryLabel.textAlignment = .left
+                }
+                
+                NSLayoutConstraint.activate([
+                    categoryLabelTopConstraint,
+                    categoryLabelLeadingConstraint,
+                    chosenCategoryTopConstraint,
+                    chosenCategoryLeadingConstraint,
+                    chosenCategoryBottomConstraint])
                 
             case 1:
                 cell.backgroundColor = UIColor(named: "Background [day]")
@@ -379,11 +448,11 @@ extension NewHabitViewController: UITableViewDataSource {
                 let currentDay = calendar.component(.weekday, from: Date())
                 cell.contentView.addSubview(daysLabel)
                 
-                let scheduleLabelTopConstraint = scheduleLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 10)
-                let scheduleLabelLeadingConstraint = scheduleLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 20)
-                let daysLabelTopConstraint = daysLabel.topAnchor.constraint(equalTo: scheduleLabel.bottomAnchor, constant: 10)
-                let daysLabelLeadingConstraint = daysLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 20)
-                let daysLabelBottomConstraint = daysLabel.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -10)
+                let scheduleLabelTopConstraint = scheduleLabel.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 15)
+                let scheduleLabelLeadingConstraint = scheduleLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16)
+                let daysLabelTopConstraint = daysLabel.topAnchor.constraint(equalTo: scheduleLabel.bottomAnchor, constant: 0)
+                let daysLabelLeadingConstraint = daysLabel.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 16)
+                let daysLabelBottomConstraint = daysLabel.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -14)
                 
                 if mySchedule.isEmpty {
                     daysLabel.isHidden = true
@@ -397,7 +466,12 @@ extension NewHabitViewController: UITableViewDataSource {
                     scheduleLabel.textAlignment = .left
                 }
                 
-                NSLayoutConstraint.activate([scheduleLabelTopConstraint, scheduleLabelLeadingConstraint, daysLabelTopConstraint, daysLabelLeadingConstraint, daysLabelBottomConstraint])
+                NSLayoutConstraint.activate([
+                    scheduleLabelTopConstraint,
+                    scheduleLabelLeadingConstraint,
+                    daysLabelTopConstraint,
+                    daysLabelLeadingConstraint,
+                    daysLabelBottomConstraint])
                 
             default:
                 break
@@ -421,11 +495,12 @@ extension NewHabitViewController: UITableViewDataSource {
         switch indexPath.row {
         case 0:
             let categoryVC = CategoryViewController()
+            categoryVC.viewModel = self.categoriesViewModel
+            categoryVC.delegate = self
             let navController = UINavigationController(rootViewController: categoryVC)
             present(navController, animated: true, completion: nil)
             
         case 1:
-            createButton.isEnabled = true
             if let exitingScheduleVC = trackersScheduleViewController {
                 exitingScheduleVC.mySchedule = mySchedule
                 exitingScheduleVC.delegate = self
@@ -438,6 +513,16 @@ extension NewHabitViewController: UITableViewDataSource {
         default:
             break
         }
+    }
+}
+
+// MARK: - CategoryViewControllerDelegate
+extension NewHabitViewController: CategoryViewControllerDelegate {
+    func didSelectCategory(_ category: TrackerCategory) {
+        selectedCategory = category.title
+        updateCategoryCellSubtitle()
+        tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+        dismiss(animated: true)
     }
 }
 
