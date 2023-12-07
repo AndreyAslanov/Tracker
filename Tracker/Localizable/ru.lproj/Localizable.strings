@@ -51,7 +51,7 @@
 "filters" = "Фильтры";
 "pin" = "Закрепить";
 "unpin" = "Открепить";
-"pinned" = "Закрепленные";
+"pinned" = "Закрепленные";          // LocalizableStringKeys.pinned
 "edit" = "Редактировать";
 "delete" = "Удалить";
 "sureToDelete" = "Уверены, что хотите удалить трекер?";

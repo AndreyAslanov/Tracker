@@ -41,12 +41,15 @@ final class TrackerStore: NSObject {
     private var currentNameFilter: String?
     private var currentFilterWeekDay: Int = 0
     private var selectedCategory: String?
-
+    
     lazy var fetchedResultController: NSFetchedResultsController<TrackerCoreData> = {
         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
-        
-        let sortDescriptor = NSSortDescriptor(keyPath: \TrackerCoreData.category?.titleCategory, ascending: true)
-        request.sortDescriptors = [sortDescriptor]
+
+        let pinnedSortDescriptor = NSSortDescriptor(keyPath: \TrackerCoreData.isPinned, ascending: false)
+        let categorySortDescriptor = NSSortDescriptor(keyPath: \TrackerCoreData.category?.titleCategory, ascending: false)
+
+        request.sortDescriptors = [pinnedSortDescriptor, categorySortDescriptor]
+
         let frc = NSFetchedResultsController(fetchRequest: request,
                                              managedObjectContext: context,
                                              sectionNameKeyPath: #keyPath(TrackerCoreData.category.titleCategory),
@@ -55,6 +58,7 @@ final class TrackerStore: NSObject {
         frc.delegate = self
         return frc
     }()
+
 
     var trackers: [Tracker] {
         guard
@@ -287,7 +291,7 @@ final class TrackerStore: NSObject {
         print("Tracker \(tracker.name) isPinned: \(trackerCoreData.isPinned)")
 
         if trackerCoreData.isPinned {
-            if let pinnedCategory = TrackerCategoryStore.shared.fetchedCategory(with: "Закрепленные") {
+            if let pinnedCategory = TrackerCategoryStore.shared.fetchedCategory(with: LocalizableStringKeys.pinned) {
                 pinnedCategory.addToTrackers(trackerCoreData)
             }
         } else {
