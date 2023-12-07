@@ -29,7 +29,8 @@ final class TrackerScheduleTableView: UITableViewCell {
         self.accessoryView = switchTap
         textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         textLabel?.textColor = .black
-        backgroundColor = UIColor(named: "Background [day]")
+//        backgroundColor = UIColor(named: "Background [day]")
+        backgroundColor = .darkBackground
         if row == 6 {
             separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 400)
             layer.cornerRadius = 16

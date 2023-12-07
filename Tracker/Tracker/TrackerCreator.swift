@@ -8,7 +8,7 @@
 import UIKit
 
 protocol TrackerCreatorDelegate: AnyObject {
-    func didSelectTrackerType(_ type: String)
+//    func didSelectTrackerType(_ type: String)
     func newTrackerCreated(_ tracker: Tracker, category: String?)
 }
 
@@ -18,11 +18,12 @@ final class TrackerCreatorViewController: UIViewController {
     weak var delegate: TrackerCreatorDelegate?
     var categories: [TrackerCategory] = []
     var trackerStore: TrackerStore?
+    var editingTrackerId: UUID?
     
     // MARK: - UI Elements
     private let topLabel: UILabel = {
         let label = UILabel()
-        label.text = "Создание трекера"
+        label.text = LocalizableStringKeys.topLabelCreator
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         return label
@@ -30,7 +31,7 @@ final class TrackerCreatorViewController: UIViewController {
     
     private let habitButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Привычка", for: .normal)
+        button.setTitle(LocalizableStringKeys.habitButton, for: .normal)
         button.addTarget(self, action: #selector(habitButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .black
@@ -42,7 +43,7 @@ final class TrackerCreatorViewController: UIViewController {
     
     private let eventButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Нерегулярное событие", for: .normal)
+        button.setTitle(LocalizableStringKeys.eventButton, for: .normal)
         button.addTarget(self, action: #selector(eventButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .black
@@ -99,8 +100,7 @@ final class TrackerCreatorViewController: UIViewController {
     
 // MARK: - Buttons
     @objc private func habitButtonTapped() {
-        delegate?.didSelectTrackerType("Привычка")
-        
+//        delegate?.didSelectTrackerType("Привычка")
         let newHabitViewController = NewHabitViewController()
         newHabitViewController.delegate = self
         newHabitViewController.categories = categories
@@ -110,7 +110,7 @@ final class TrackerCreatorViewController: UIViewController {
     }
     
     @objc private func eventButtonTapped() {
-        delegate?.didSelectTrackerType("Нерегулярное событие")
+//        delegate?.didSelectTrackerType("Нерегулярное событие")
         
         let newEventViewController = NewEventViewController()
         newEventViewController.delegate = self

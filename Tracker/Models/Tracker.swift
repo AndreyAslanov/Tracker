@@ -13,42 +13,45 @@ struct Tracker {
     let color: UIColor
     let emoji: String
     let mySchedule: Set <WeekDay>
-    let records: Set<TrackerRecord>
-//    let category: Set<TrackerCategory>
+    let records: Set <TrackerRecord>
+    var isPinned: Bool
+    var mainCategory: String
 }
 
 enum WeekDay: Int, CaseIterable {
     case monday = 0
-    case tuesday = 1
-    case wednesday = 2
-    case thursday = 3
-    case friday = 4
-    case saturday = 5
-    case sunday = 6
+    case tuesday
+    case wednesday
+    case thursday
+    case friday
+    case saturday
+    case sunday
     
-    static func weekDay(for day: Int) -> String {
-        switch day {
-        case 0: return "Понедельник"
-        case 1: return "Вторник"
-        case 2: return "Среда"
-        case 3: return "Четверг"
-        case 4: return "Пятница"
-        case 5: return "Суббота"
-        case 6: return "Воскресенье"
-        default: return ""
+    var fullDayName: String {
+        switch self {
+        case .monday: return LocalizableStringKeys.monday
+        case .tuesday: return LocalizableStringKeys.tuesday
+        case .wednesday: return LocalizableStringKeys.wednesday
+        case .thursday: return LocalizableStringKeys.thursday
+        case .friday: return LocalizableStringKeys.friday
+        case .saturday: return LocalizableStringKeys.saturday
+        case .sunday: return LocalizableStringKeys.sunday
         }
     }
     
-    static func shortName(for day: Int) -> String {
-        switch day {
-        case 0: return "Пн"
-        case 1: return "Вт"
-        case 2: return "Ср"
-        case 3: return "Чт"
-        case 4: return "Пт"
-        case 5: return "Сб"
-        case 6: return "Вс"
-        default: return ""
+    var shortDayName: String {
+        switch self {
+        case .monday: return LocalizableStringKeys.mon
+        case .tuesday: return LocalizableStringKeys.tue
+        case .wednesday: return LocalizableStringKeys.wed
+        case .thursday: return LocalizableStringKeys.thu
+        case .friday: return LocalizableStringKeys.fri
+        case .saturday: return LocalizableStringKeys.sat
+        case .sunday: return LocalizableStringKeys.sun
         }
+    }
+    
+    static func fromRawValue(_ rawValue: Int) -> WeekDay? {
+        return WeekDay(rawValue: rawValue)
     }
 }

@@ -7,14 +7,25 @@
 
 import UIKit
 
-protocol CategoryViewControllerDelegate {
+protocol CategoryViewControllerDelegate: AnyObject {
     func didSelectCategory(_ category: TrackerCategory)
 }
 
 class CategoryViewController: UIViewController {
     
-    var categories: [TrackerCategory] = []
-    var delegate: CategoryViewControllerDelegate?
+    var viewModel: CategoryViewControllerModel
+    weak var delegate: CategoryViewControllerDelegate?
+    static let shared = CategoryViewController.self
+    
+    // MARK: - Initializers
+    init(viewModel: CategoryViewControllerModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private let topLabel: UILabel = {
         let label = UILabel()
@@ -46,7 +57,7 @@ class CategoryViewController: UIViewController {
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         label.textColor = .black
         label.numberOfLines = 2
-        label.text = "Привычки и события можно\n объединить по смыслу"
+        label.text = LocalizableStringKeys.trackerViewCategory
         label.textAlignment = .center
         return label
     }()
@@ -55,7 +66,7 @@ class CategoryViewController: UIViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .black
-        button.setTitle("Добавить категорию", for: .normal)
+        button.setTitle(LocalizableStringKeys.addButton, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 16
@@ -65,7 +76,7 @@ class CategoryViewController: UIViewController {
         return button
     }()
     
-    private let tableView: UITableView = {
+     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = true
@@ -83,32 +94,36 @@ class CategoryViewController: UIViewController {
         setupUI()
         setupConstraints()
         
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "categoryCell")
+        tableView.register(TrackerCategoryCell.self, forCellReuseIdentifier: "categoryCell")
         tableView.delegate = self
         tableView.dataSource = self
         
-        if let viewModel = viewModel {
-               viewModel.loadCategoriesFromCoreData()
-           }
+        viewModel.loadCategoriesFromCoreData()
+        bindViewModel()
     }
     
-    var viewModel: CategoryViewControllerModel? {
-        didSet {
-            viewModel?.updateView = { [ weak self ] in
-                DispatchQueue.main.async {
-                    self?.tableView.reloadData()
-                    self?.updateUIForEmptyState()
-                }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateUIForEmptyState()
+    }
+    
+    private func bindViewModel() {
+        viewModel.updateView = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+                self?.updateUIForEmptyState()
             }
         }
     }
     
-    func updateUIForEmptyState() {
-        let isEmpty = viewModel?.categories.isEmpty ?? true
+    func reload() {
+        tableView.reloadData()
+    }
+    
+    private func updateUIForEmptyState() {
+        let isEmpty = viewModel.categories.isEmpty
         tableView.isHidden = isEmpty
         pictureStackView.isHidden = !isEmpty
-        
-        print("Is picture stack view hidden: \(pictureStackView.isHidden)")
     }
     
     private func setupUI() {
@@ -139,62 +154,32 @@ class CategoryViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16)
+            
         ])
     }
-
+    
     @objc private func addButtonTapped() {
         let createCategoryVC = CreateCategoryViewController()
         createCategoryVC.viewModel = self.viewModel
         navigationController?.pushViewController(createCategoryVC, animated: true)
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        updateUIForEmptyState()
-    }
 }
 
+// MARK: - UITableViewDelegate, UITableViewDataSource
 extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel?.categories.count ?? 0
+        return viewModel.categories.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "categoryCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier:  "categoryCell", for: indexPath) as! TrackerCategoryCell
         
-        if let categoryName = viewModel?.categories[indexPath.row].title {
-            cell.textLabel?.text = categoryName
-            cell.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        } else {
-            cell.textLabel?.text = nil
-        }
-        
-        cell.backgroundColor = UIColor(named: "Background [day]")
-        
-        let selectedBackgroundView = UIView()
-        selectedBackgroundView.backgroundColor = UIColor(named: "Background [day]")
-        selectedBackgroundView.layer.cornerRadius = 16
-        
+        let category = viewModel.categories[indexPath.row]
         let isFirstCell = indexPath.row == 0
         let isLastCell = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
+        let isSelected = indexPath.row == viewModel.selectedCategoryIndex
         
-        if isFirstCell && isLastCell {
-            selectedBackgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else if isFirstCell {
-            selectedBackgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        } else if isLastCell {
-            selectedBackgroundView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else {
-            selectedBackgroundView.layer.maskedCorners = []
-        }
-        cell.selectedBackgroundView = selectedBackgroundView
-        
-        if indexPath.row == viewModel?.selectedCategoryIndex {
-            cell.accessoryType = .checkmark
-        } else {
-            cell.accessoryType = .none
-        }
-        
+        cell.configure(with: category, isFirst: isFirstCell, isLast: isLastCell, isSelected: isSelected)
         return cell
     }
     
@@ -205,12 +190,14 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         if isFirstCell && isLastCell {
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 400)
         } else if isFirstCell {
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         } else if isLastCell {
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 400)
         } else {
             cell.layer.cornerRadius = 0
             cell.layer.maskedCorners = []
@@ -218,11 +205,12 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        viewModel?.selectedCategoryIndex = indexPath.row
-        tableView.reloadData()
-
-        if let selectedCategory = viewModel?.categories[indexPath.row] {
-            delegate?.didSelectCategory(selectedCategory)
+        guard indexPath.row < viewModel.categories.count else {
+            return
         }
+        viewModel.selectedCategoryIndex = indexPath.row
+        tableView.reloadData()
+        let selectedCategory = viewModel.categories[indexPath.row]
+        delegate?.didSelectCategory(selectedCategory)
     }
 }

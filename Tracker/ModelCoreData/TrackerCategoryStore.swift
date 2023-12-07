@@ -8,10 +8,6 @@
 import UIKit
 import CoreData
 
-protocol TrackerCategoryStoreDelegate {
-    func update()
-}
-
 // MARK: - struct
 private struct TrackerCategoryStoreUpdate {
     struct Move: Hashable {
@@ -26,6 +22,7 @@ private struct TrackerCategoryStoreUpdate {
 
 // MARK: - TrackerCategoryStore
 class TrackerCategoryStore: NSObject {
+    
     private let context: NSManagedObjectContext
     private let trackerStore = TrackerStore()
     
@@ -36,7 +33,8 @@ class TrackerCategoryStore: NSObject {
     
     public static let shared = TrackerCategoryStore()
     
-    var delegate: TrackerCategoryStoreDelegate?
+    private let uiColorMarshalling = UIColorMarshalling()
+    private let scheduleMarshalling = ScheduleMarshalling()
     
     private lazy var fetchedResultController: NSFetchedResultsController<TrackerCategoryCoreData>! = {
         let request = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
@@ -46,19 +44,17 @@ class TrackerCategoryStore: NSObject {
             fetchRequest: request,
             managedObjectContext: context,
             sectionNameKeyPath: nil,
-            cacheName: nil
-        )
+            cacheName: nil)
         controller.delegate = self
         try? controller.performFetch()
         return controller
     }()
     
     var categories: [TrackerCategory] {
-        guard
-            let objects = self.fetchedResultController.fetchedObjects,
-            let categories = try? objects.map({ try self.makeCategories(from: $0) })
+        guard let objects = self.fetchedResultController.fetchedObjects,
+              var categories = try? objects.map({ try self.makeCategories(from: $0) })
         else { return [] }
-        print("Categories: \(categories)")
+        categories.removeAll { $0.title == "Закрепленные" }
         return categories
     }
     
@@ -74,6 +70,7 @@ class TrackerCategoryStore: NSObject {
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
+        self.createPinCategory()
     }
     
     private func makeCategories(from trackerCategoryCoreData: TrackerCategoryCoreData) throws -> TrackerCategory {
@@ -93,15 +90,11 @@ class TrackerCategoryStore: NSObject {
         })
     }
     
-    private func fetchedCategory(with title: String) throws -> TrackerCategoryCoreData? {
+    func fetchedCategory(with title: String) -> TrackerCategoryCoreData? {
         let request = fetchedResultController.fetchRequest
         request.predicate = NSPredicate(format: "%K == %@", argumentArray: ["titleCategory", title])
-        do {
-            let category = try context.fetch(request)
-            return category.first
-        } catch {
-            throw TrackerCategoryStoreError.errorCategoryModel
-        }
+        guard let category = try? context.fetch(request) else { return nil }
+        return category.first
     }
     
     func createCategory(_ category: TrackerCategory) throws {
@@ -118,21 +111,81 @@ class TrackerCategoryStore: NSObject {
     }
     
     func createTrackerWithCategory(tracker: Tracker, with titleCategory: String) throws {
-        if let currentCategory = try? fetchedCategory(with: titleCategory) {
-            let trackerCoreData = try trackerStore.createTracker(from: tracker)
-            currentCategory.addToTrackers(trackerCoreData)
+        if let currentCategory = fetchedCategory(with: titleCategory) {
+            trackerStore.createTracker(from: tracker, category: currentCategory)
+            print(#function, currentCategory)
         } else {
             let newCategory = TrackerCategoryCoreData(context: context)
             newCategory.titleCategory = titleCategory
-            let trackerCoreData = try trackerStore.createTracker(from: tracker)
-            newCategory.addToTrackers(trackerCoreData)
+            trackerStore.createTracker(from: tracker, category: newCategory)
+            print(#function, newCategory)
+            // newCategory.addToTrackers(trackerCoreData)
         }
         do {
             try context.save()
-            print("Tracker saved with category")
         } catch {
             throw TrackerCategoryStoreError.errorCategoryModel
         }
+    }
+    
+    func createPinCategory() {
+        let name = "Закрепленные"
+        if let fetchedNewCategory = fetchedCategory(with: name) {
+        print(#function, "Закрепленные is already here")
+            } else {
+        guard let entity = NSEntityDescription.entity(forEntityName: "TrackerCategoryCoreData", in: context) else { return }
+        let categoryEntity = TrackerCategoryCoreData(entity: entity, insertInto: context)
+
+        categoryEntity.titleCategory = name
+        categoryEntity.trackers = NSSet(array: [])
+        contextSave()
+        print(#function, entity)
+      }
+    }
+
+    func editTrackerWithCategory(tracker: Tracker, oldCategoryTitle: String?, newCategoryTitle: String?) throws {
+        do {
+            guard let existingTracker = try findTracker(with: tracker.id) else {
+                print("Трекер не найден")
+                return
+            }
+            print("Existing Tracker: \(existingTracker)")
+
+            if let newCategoryTitle = newCategoryTitle {
+                if let oldCategoryTitle = oldCategoryTitle, oldCategoryTitle != newCategoryTitle {
+                    if let oldCategory = try fetchedCategory(with: oldCategoryTitle) {
+                        oldCategory.removeFromTrackers(existingTracker)
+                    }
+                }
+
+                let newCategory: TrackerCategoryCoreData
+                if let fetchedNewCategory = try fetchedCategory(with: newCategoryTitle) {
+                    newCategory = fetchedNewCategory
+                } else {
+                    newCategory = TrackerCategoryCoreData(context: context)
+                    newCategory.titleCategory = newCategoryTitle
+                }
+
+                existingTracker.category = newCategory
+            }
+
+            existingTracker.name = tracker.name
+            existingTracker.color = uiColorMarshalling.hexString(from: tracker.color)
+            existingTracker.emoji = tracker.emoji
+            existingTracker.mySchedule = scheduleMarshalling.convertSetToMyScheduleString(tracker.mySchedule)
+
+            try context.save()
+            print("Tracker updated successfully")
+        } catch {
+            print("Ошибка при обновлении трекера: \(error)")
+            throw TrackerCategoryStoreError.errorCategoryModel
+        }
+    }
+
+     func findTracker(with id: UUID) throws -> TrackerCoreData? {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "%K == %@", argumentArray: ["trackerID", id as CVarArg])
+        return try context.fetch(request).first
     }
 
     private func contextSave() {
@@ -165,6 +218,26 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
         }
     }
 }
+
+extension TrackerCategoryStore {
+    func getCategoryTitleByTrackerID(_ trackerID: UUID) -> String? {
+        guard let objects = self.fetchedResultController.fetchedObjects else {
+            return nil
+        }
+
+        for object in objects {
+            if let coreDataTrackerCategory = object as? TrackerCategoryCoreData,
+               let trackers = coreDataTrackerCategory.trackers as? Set<TrackerCoreData>,
+               let coreDataTracker = trackers.first(where: { $0.trackerID == trackerID }),
+               let category = try? makeCategories(from: coreDataTrackerCategory) {
+
+                return category.title
+            }
+        }
+        return nil
+    }
+}
+
 // MARK: - Error
 extension TrackerCategoryStore {
     enum TrackerCategoryStoreError: Error {

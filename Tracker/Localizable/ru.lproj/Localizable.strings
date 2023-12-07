@@ -1,0 +1,79 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Андрей Асланов on 22.11.23.
+  
+*/
+
+"onboardingPageFirst" = "Отслеживайте только\n то, что хотите";
+"onboardingPageSecond" = "Даже если это\n не литры воды и йога";
+"buttonOnboarding" = "Вот это технологии!";
+"trackerViewCategory" = "Привычки и события \n можно объединить по смыслу";
+
+"tabBarTrackers" = "Трекеры";
+"searchBar" = "Поиск";
+"searchBarCancel" = "Отменить";
+
+"statisticText" = "Анализировать пока нечего";
+"statisticTabBar" = "Статистика";
+"pictureText" = "Что будем отслеживать?";
+"topLabelCreator" = "Создание трекера";
+"habitButton" = "Привычка";
+"eventButton" = "Нерегулярное событие";
+
+"newHabitLabel" = "Новая привычка";
+"editHabitLabel" = "Редактирование привычки";
+"editEventLabel" = "Редактирование нерегулярного действия";         //на англ надо
+"nameTextFieldTracker" = "Введите название трекера";
+"textFieldSymbolConstraintLabel" = "Ограничение 38 символов";
+"categoryLabel" = "Категория";
+"scheduleLabel" = "Расписание";
+"daysLabelEveryDay" = "Каждый день";
+"emojiLabel" = "Emoji";
+"colorLabel" = "Цвет";
+"cancelButton" = "Отменить";
+"createButton" = "Создать";
+
+"newEventLabel" = "Новое нерегулярное событие";
+
+"topLabelCategory" = "Новая категория";
+"nameTextFieldCategory" = "Введите название категории";
+"doneButton" = "Готово";
+"addButton" = "Добавить категорию";
+
+"allTrackers" = "Все трекеры";
+"trackersForToday" = "Трекеры на сегодня";
+"completed" = "Завершенные";
+"unfinished" = "Не завершенные";
+
+"nothingFound" = "Ничего не найдено";
+"filters" = "Фильтры";
+"pin" = "Закрепить";
+"unpin" = "Открепить";
+"pinned" = "Закрепленные";
+"edit" = "Редактировать";
+"delete" = "Удалить";
+"sureToDelete" = "Уверены, что хотите удалить трекер?";
+"cancel" = "Отменить";
+"trackersCompleted" = "Трекеров завершено";
+"bestPeriod" = "Лучший период";
+"idealDays" = "Идеальные дни";
+"averageValue" = "Среднее значение";
+
+// "Расписание"
+"monday" = "Понедельник";
+"tuesday" = "Вторник";
+"wednesday" = "Среда";
+"thursday" = "Четверг";
+"friday" =  "Пятница";
+"saturday" = "Суббота";
+"sunday" = "Воскресенье";
+
+"mon" = "Пн";
+"tue" = "Вт";
+"wed" = "Ср";
+"thu" = "Чт";
+"fri" = "Пт";
+"sat" = "Сб";
+"sun" = "Вс";

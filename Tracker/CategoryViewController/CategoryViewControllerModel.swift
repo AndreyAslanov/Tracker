@@ -5,7 +5,7 @@
 //  Created by Андрей Асланов on 26.10.23.
 //
 
-import UIKit
+import Foundation
 
 struct Category {
     let id: UUID
@@ -13,39 +13,28 @@ struct Category {
 }
 
 final class CategoryViewControllerModel {
-
+    // MARK: - Private Properties
     var trackerCategoryStore: TrackerCategoryStore
-
-       // Инициализация с передачей экземпляра TrackerCategoryStore
-       init(trackerCategoryStore: TrackerCategoryStore) {
-           self.trackerCategoryStore = trackerCategoryStore
-       }
-
-       // Метод для загрузки категорий из Core Data
-       func loadCategoriesFromCoreData() {
-           categories = trackerCategoryStore.categories
-       }
-
-
+    var selectedCategoryIndex: Int?
+    var updateView: (() -> Void)?
     var categories: [TrackerCategory] = [] {
         didSet {
             updateView?()
-            print ("categories \(categories)")
         }
     }
-
-    var updateView: (() -> Void)? {
-        didSet {
-            print("updateView установлен")
-        }
+    
+    // MARK: - Initializers
+    init(trackerCategoryStore: TrackerCategoryStore) {
+        self.trackerCategoryStore = trackerCategoryStore
     }
-
+    
+    // MARK: - Public Methods
+    func loadCategoriesFromCoreData() {
+        categories = trackerCategoryStore.categories
+    }
+    
     func addCategory(_ category: TrackerCategory) {
         categories.append(category)
-        print("Категория добавлена: \(category)")
-        print("Количество категорий в массиве: \(categories.count)")
         updateView?()
     }
-
-    var selectedCategoryIndex: Int?
 }
