@@ -13,7 +13,7 @@ final class CreateCategoryViewController: UIViewController{
     
     private let topLabel: UILabel = {
         let label = UILabel()
-        label.text = "Новая категория"
+        label.text = LocalizableStringKeys.topLabelCategory
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         return label
@@ -22,9 +22,10 @@ final class CreateCategoryViewController: UIViewController{
     private let nameTextField: UITextField = {
         let textField = UITextField()
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = LocalizableStringKeys.nameTextFieldCategory
         textField.clearButtonMode = .always
-        textField.backgroundColor = UIColor(named: "Background [day]")
+//        textField.backgroundColor = UIColor(named: "Background [day]")
+        textField.backgroundColor = .darkBackground
         textField.layer.cornerRadius = 16
         textField.leftViewMode = .always
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 20, height: 0))
@@ -87,10 +88,6 @@ final class CreateCategoryViewController: UIViewController{
         ])
     }
     
-    @objc func dismissKeyboard() {
-        view.endEditing(true)
-    }
-    
     @objc func textFieldDidChange() {
         if let text = nameTextField.text, !text.isEmpty {
             addButton.backgroundColor = .black
@@ -128,5 +125,12 @@ extension CreateCategoryViewController: UITextFieldDelegate {
      
     func textFieldShouldClear(_ textField: UITextField) -> Bool {
         return true
+    }
+}
+
+// MARK: - Keyboard Handling
+extension CreateCategoryViewController {
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
     }
 }

@@ -1,0 +1,79 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Андрей Асланов on 22.11.23.
+  
+*/
+
+"onboardingPageFirst" = "Track only\n what you want";
+"onboardingPageSecond" = "Even if it's\n not gallons of water and yoga";
+"buttonOnboarding" = "These are technologies!";
+"trackerViewCategory" = "Habits and events can be\n combined in meaning";
+
+"tabBarTrackers" = "Trackers";
+"searchBar" = "Search";
+"searchBarCancel" = "Cancel";
+
+"statisticTabBar" = "Statistic";
+"statisticText" = "There is nothing to analyze yet";
+"pictureText" = "What will we track?";
+"topLabelCreator" = "Creating a tracker";
+"habitButton" = "Habit";
+"eventButton" = "Irregular event";
+
+"newHabitLabel" = "New habit";
+"editHabitLabel" = "Edit habit";
+"editEventLabel" = "Edit irregular event";
+"nameTextFieldTracker" = "Enter the name of the tracker";
+"textFieldSymbolConstraintLabel" = "Limit of 38 characters";
+"categoryLabel" = "Category";
+"scheduleLabel" = "Timetable";
+"daysLabelEveryDay" = "Every day";
+"emojiLabel" = "Emoji";
+"colorLabel" = "Color";
+"cancelButton" = "Cancel";
+"createButton" = "Create";
+
+"newEventLabel" = "New irregular event";
+
+"topLabelCategory" = "New category";
+"nameTextFieldCategory" = "Enter the name of the category";
+"doneButton" = "Done";
+"addButton" = "Add a category";
+
+"allTrackers" = "All trackers";
+"trackersForToday" = "Trackers for today";
+"completed" = "Completed";
+"unfinished" = "Unfinished";
+
+"nothingFound" = "Nothing found";
+"filters" = "Filters";
+"pin" = "Pin";
+"unpin" = "Unpin";
+"pinned" = "Pinned";
+"edit" = "Edit";
+"delete" = "Delete";
+"sureToDelete" = "Are you sure to delete the tracker?";
+"cancel" = "Cancel";
+"trackersCompleted" = "Trackers completed";
+"bestPeriod" = "Best period";
+"idealDays" = "Ideal days";
+"averageValue" = "Average Value";
+
+// "Расписание"
+"monday" = "Monday";
+"tuesday" = "Tuesday";
+"wednesday" = "Wednesday";
+"thursday" = "Thursday";
+"friday" =  "Friday";
+"saturday" = "Saturday";
+"sunday" = "Sunday";
+
+"mon" = "Mon";
+"tue" = "Tue";
+"wed" = "Wed";
+"thu" = "Thu";
+"fri" = "Fri";
+"sat" = "Sat";
+"sun" = "Sun";

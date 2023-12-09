@@ -7,21 +7,20 @@
 
 import UIKit
 import CoreData
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
     static let shared = AppDelegate()
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-        let tabBarController = TabBarController()
-
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.rootViewController = tabBarController
-        window?.makeKeyAndVisible()
-        
+        guard let configuration = YMMYandexMetricaConfiguration(apiKey: "e2e2b98c-a114-4bd0-8c2b-9b61ad92b61c") else { 
+            return true
+        }
+            
+        YMMYandexMetrica.activate(with: configuration)
         return true
     }
 

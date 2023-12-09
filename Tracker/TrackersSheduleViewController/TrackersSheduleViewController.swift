@@ -21,7 +21,7 @@ final class TrackersSheduleViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Расписание"
+        label.text = LocalizableStringKeys.scheduleLabel
         label.font = UIFont.systemFont(ofSize: 17, weight: .medium)
         return label
     }()
@@ -40,7 +40,7 @@ final class TrackersSheduleViewController: UIViewController {
     private let doneButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(LocalizableStringKeys.doneButton, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .black
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -111,7 +111,7 @@ extension TrackersSheduleViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as? TrackerScheduleTableView {
-            cell.textLabel?.text = WeekDay.weekDay(for: indexPath.row)
+            cell.textLabel?.text = WeekDay(rawValue: indexPath.row)?.fullDayName ?? ""
             cell.delegate = self
             if let day = WeekDay(rawValue: indexPath.row) {
                 cell.configure(at: indexPath.row, isOn: mySchedule.contains(day))
@@ -123,6 +123,7 @@ extension TrackersSheduleViewController: UITableViewDataSource {
     }
 }
   
+// MARK: - TrackerScheduleTableViewDelegate
 extension TrackersSheduleViewController: TrackersScheduleTableViewDelegate {
     func switchValueChanged(_ isOn: Bool, at row: Int) {
         if let day = WeekDay(rawValue: row) {
