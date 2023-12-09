@@ -87,15 +87,15 @@ final class StatisticViewController: UIViewController {
         }
         
         // Добавление ячеек статистики
-          let cell1 = StatisticCell(number: 0, name: LocalizableStringKeys.bestPeriod)
-          let cell2 = StatisticCell(number: 0, name: LocalizableStringKeys.idealDays)
-          let cell4 = StatisticCell(number: 0, name: LocalizableStringKeys.averageValue)
-   
+        let cell1 = StatisticCell(number: 0, name: LocalizableStringKeys.bestPeriod)
+        let cell2 = StatisticCell(number: 0, name: LocalizableStringKeys.idealDays)
+        let cell4 = StatisticCell(number: 0, name: LocalizableStringKeys.averageValue)
+        
         statisticsStack.addArrangedSubview(cell1)
         statisticsStack.addArrangedSubview(cell2)
         statisticsStack.addArrangedSubview(completedTrackersView)
         statisticsStack.addArrangedSubview(cell4)
-
+        
         configureConstraints()
         
         statisticViewModel.onTrackersChange = { [weak self] trackers in
@@ -117,25 +117,9 @@ final class StatisticViewController: UIViewController {
     }
     
     private func checkMainPlaceholderVisability() {
-            let isHidden = trackerRecordStore.trackerRecords?.isEmpty ?? true
-            mainSpacePlaceholderStack.isHidden = !isHidden
-        }
-
-//    private func checkContent(with trackers: [TrackerRecord]) {
-//        if trackers.isEmpty {
-//            // Скрывать statisticsStack, когда нет трекеров
-//            statisticsStack.isHidden = true
-//            mainSpacePlaceholderStack.isHidden = false
-//        } else {
-//            // Показывать statisticsStack, когда есть трекеры
-//            statisticsStack.isHidden = false
-//
-//            // Определять видимость ячеек внутри statisticsStack
-//            cell1?.isHidden = completedTrackersView.isHidden
-//            cell2?.isHidden = completedTrackersView.isHidden
-//            cell4?.isHidden = completedTrackersView.isHidden
-//        }
-//    }
+        let isHidden = trackerRecordStore.trackerRecords?.isEmpty ?? true
+        mainSpacePlaceholderStack.isHidden = !isHidden
+    }
     
     private func checkContent(with trackers: [TrackerRecord]) {
         if trackers.isEmpty {
@@ -146,7 +130,7 @@ final class StatisticViewController: UIViewController {
             
         }
     }
-
+    
     private func setupUI() {
         configureViews()
         configureConstraints()
@@ -159,9 +143,6 @@ private extension StatisticViewController {
     func configureViews() {
         [statisticLabel, mainSpacePlaceholderStack, statisticsStack].forEach { view.addSubview($0) }
         statisticsStack.addArrangedSubview(completedTrackersView)
-       // statisticLabel.translatesAutoresizingMaskIntoConstraints = false
-   //     mainSpacePlaceholderStack.translatesAutoresizingMaskIntoConstraints = false
-      //  statisticsStack.translatesAutoresizingMaskIntoConstraints = false
     }
     
     func configureConstraints() {

@@ -59,7 +59,6 @@ final class TrackerStore: NSObject {
         return frc
     }()
 
-
     var trackers: [Tracker] {
         guard
             let objects = fetchedResultController.fetchedObjects,
@@ -78,7 +77,6 @@ final class TrackerStore: NSObject {
         let pinnedTrackers = try? objects.compactMap { try self.makeTrackers(from: $0) }.filter { $0.isPinned }
         return pinnedTrackers ?? []
     }
-
 
     convenience override init() {
             if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
@@ -379,18 +377,18 @@ extension TrackerStore {
         let currentDate = Date().withoutTime()
         let datePredicate = NSPredicate(format: "ANY records.date == %@", currentDate! as NSDate)
         fetchedResultController.fetchRequest.predicate = datePredicate
-        
+
         do {
             try fetchedResultController.performFetch()
         } catch {
             print("Error performing fetch: \(error)")
         }
     }
-    
+
     func filterCompleted(for date: Date) -> Bool {
         let completedPredicate = NSPredicate(format: "ANY records.date == %@", date as NSDate)
         fetchedResultController.fetchRequest.predicate = completedPredicate
-        
+
         do {
             try fetchedResultController.performFetch()
             return true
@@ -399,7 +397,7 @@ extension TrackerStore {
             return false
         }
     }
-    
+
     func filterNotCompleted(for date: Date) {
         let currentFilterWeekDay = (Calendar.current.component(.weekday, from: date) + 5) % 7
         let notCompletedPredicate = NSPredicate(format: "SUBQUERY(records, $record, $record.date == %@).@count == 0 AND mySchedule CONTAINS[c] %@", date as NSDate, "\(currentFilterWeekDay)")
@@ -415,7 +413,7 @@ extension TrackerStore {
 
     func clearFilters() {
         fetchedResultController.fetchRequest.predicate = nil
-        
+
         do {
             try fetchedResultController.performFetch()
         } catch {

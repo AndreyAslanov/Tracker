@@ -15,7 +15,6 @@ class CategoryViewController: UIViewController {
     
     var viewModel: CategoryViewControllerModel
     weak var delegate: CategoryViewControllerDelegate?
-    static let shared = CategoryViewController.self
     
     // MARK: - Initializers
     init(viewModel: CategoryViewControllerModel) {

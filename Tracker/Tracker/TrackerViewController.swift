@@ -270,16 +270,16 @@ final class TrackerViewController: UIViewController {
     
      func applyFilters() {
         filters()
-        switch  currentFilter {
+        switch currentFilter {
         case "Все трекеры":
             placeholderForAllTrackers()
             print("все трекеры по дефолту")
             break
         case "Трекеры на сегодня":
-            placeholderForOtherTrackers()
             createDatePicker.date = Date().withoutTime() ?? Date()
             trackerStore.filterForToday()
             filterDataByDate()
+            placeholderForOtherTrackers()
             FilterViewController.selectedFilterIndex = 0
             currentFilter = LocalizableStringKeys.allTrackers
         case "Завершенные":
@@ -471,7 +471,7 @@ final class TrackerViewController: UIViewController {
     @objc private func filterButtonTapped() {
         let filterViewController = FilterViewController()
         filterViewController.delegate = self
-        filterViewController.filters = [LocalizableStringKeys.allTrackers, LocalizableStringKeys.trackersForToday, LocalizableStringKeys.completed, LocalizableStringKeys.unfinished]
+        filterViewController.filters = ["Все трекеры", "Трекеры на сегодня", "Завершенные", "Не завершенные"]
 
         let navigationController = UINavigationController(rootViewController: filterViewController)
         present(navigationController, animated: true, completion: nil)

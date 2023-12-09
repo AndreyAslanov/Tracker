@@ -43,7 +43,6 @@ class TrackerCategoryCell: UITableViewCell {
         layer.cornerRadius = 16
         layer.maskedCorners = cornerMask
         accessoryType = isSelected ? .checkmark : .none
-//        self.backgroundColor = UIColor(named: "Background [day]")
         self.backgroundColor = .darkBackground
     }
     

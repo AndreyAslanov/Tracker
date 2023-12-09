@@ -15,7 +15,6 @@ final class TrackerCell: UICollectionViewCell {
     
     // MARK: - Public Properties
     static let cellID = "cellID"
-    static let cell = TrackerCell()
     weak var delegate: TrackerCellDelegate?
     var trackerRecordStore: TrackerRecordStore?
     private let filterViewController = FilterViewController()
