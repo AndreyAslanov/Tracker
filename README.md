@@ -26,3 +26,8 @@
 - Минимальная версия операционной системы: iOS 13.4.
 - Верстка под iPad не предусмотрена.
 - Технологический стек: UICollectionView, SPM, Cocoapods, CoreData, Snapshot tests, MVVM, Localization, Snapkit, Swiftgen.
+
+## Скриншоты
+
+![Скриншот](Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png)
+
