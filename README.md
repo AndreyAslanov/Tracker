@@ -27,7 +27,16 @@
 - Верстка под iPad не предусмотрена.
 - Технологический стек: UICollectionView, SPM, Cocoapods, CoreData, Snapshot tests, MVVM, Localization, Snapkit, Swiftgen.
 
-## Скриншоты
+## **Скриншоты**
 
-![Скриншот](Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png)
+<img width="430" alt="Описание скриншота 1" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+
+<img width="424" alt="Описание скриншота 2" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+
+<img width="427" alt="Описание скриншота 3" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+
+<img width="431" alt="Описание скриншота 4" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+
+<img width="424" alt="Описание скриншота 5" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+
 
