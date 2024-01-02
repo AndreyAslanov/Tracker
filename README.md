@@ -29,14 +29,15 @@
 
 ## **Скриншоты**
 
-<img width="430" alt="Описание скриншота 1" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+<img width="424" alt="Снимок экрана 2024-01-02 в 03 54 45" src="https://github.com/AndreyAslanov/Tracker/blob/1e7149527a41ebdcf6ec6491ac90788f52d2f445/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.54.45.png">
 
-<img width="424" alt="Описание скриншота 2" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+<img width="430" alt="Снимок экрана 2024-01-02 в 03 51 47" src="https://github.com/AndreyAslanov/Tracker/blob/1e7149527a41ebdcf6ec6491ac90788f52d2f445/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
 
-<img width="427" alt="Описание скриншота 3" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+<img width="431" alt="Снимок экрана 2024-01-02 в 03 55 33" src="https://github.com/AndreyAslanov/Tracker/blob/1e7149527a41ebdcf6ec6491ac90788f52d2f445/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.55.33.png">
 
-<img width="431" alt="Описание скриншота 4" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+<img width="424" alt="Снимок экрана 2024-01-02 в 03 56 22" src="https://github.com/AndreyAslanov/Tracker/blob/1e7149527a41ebdcf6ec6491ac90788f52d2f445/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.56.22.png">
 
-<img width="424" alt="Описание скриншота 5" src="https://github.com/AndreyAslanov/Tracker/blob/94e545494109baab7735909938c3997c856f680c/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.51.47.png">
+<img width="427" alt="Снимок экрана 2024-01-02 в 03 55 01" src="https://github.com/AndreyAslanov/Tracker/blob/1e7149527a41ebdcf6ec6491ac90788f52d2f445/Screenshots/Simulator%20Screenshot%20-%20iPhone%2014%20Pro%20-%202024-01-02%20at%2003.55.01.png">
+
 
 
